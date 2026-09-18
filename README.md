@@ -31,6 +31,9 @@ Routes handle HTTP concerns, services contain business logic, and repositories
 hide persistence details. See [docs/architecture.md](docs/architecture.md) for
 the layer responsibilities.
 
+### Naming Convention for Branches:
+`name/feature/short-description-here`
+
 ## Repository structure
 
 ```text
@@ -89,4 +92,4 @@ Peer Review → Merge**
 
 Implementation work should not be committed directly to `main`. Keep changes
 focused, include tests for changed behavior, and use pull requests for review.
-
+`name/feature/short-description-of-ticket`
