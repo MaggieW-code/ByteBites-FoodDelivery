@@ -1,7 +1,7 @@
 [
   {
     "id": "rest_001",
-    "name": "Burger Joint",
+    "name": "Burger Craft",
     "cuisine": "American",
     "rating": 4.5,
     "address": "123 Main Street, Kelowna, BC",
@@ -9,34 +9,34 @@
   },
   {
     "id": "rest_002",
-    "name": "Sushi Express",
+    "name": "Sakura Sushi",
     "cuisine": "Japanese",
     "rating": 4.8,
-    "address": "456 University Way, Kelowna, BC",
+    "address": "456 Bernard Ave, Kelowna, BC",
     "is_active": true
   },
   {
     "id": "rest_003",
-    "name": "Burger Joint",
-    "cuisine": "American",
-    "rating": 4.5,
-    "address": "123 Main Street, Kelowna, BC",
+    "name": "Taco Fiesta",
+    "cuisine": "Mexican",
+    "rating": 4.1,
+    "address": "789 Pandosy St, Kelowna, BC",
     "is_active": true
   },
   {
     "id": "rest_004",
-    "name": "Sushi Express",
-    "cuisine": "Japanese",
-    "rating": 4.8,
-    "address": "456 University Way, Kelowna, BC",
+    "name": "Dawett Cuisine",
+    "cuisine": "Indian",
+    "rating": 4.2,
+    "address": "98 Water St, Kelowna, BC",
     "is_active": true
   },
   {
     "id": "rest_005",
-    "name": "Burger Joint",
+    "name": "Mcnodals",
     "cuisine": "American",
     "rating": 4.5,
-    "address": "123 Main Street, Kelowna, BC",
+    "address": "48 Rutland N, Kelowna, BC",
     "is_active": true
   }
 ]
