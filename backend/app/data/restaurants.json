@@ -1,0 +1,42 @@
+[
+  {
+    "id": "rest_001",
+    "name": "Burger Joint",
+    "cuisine": "American",
+    "rating": 4.5,
+    "address": "123 Main Street, Kelowna, BC",
+    "is_active": true
+  },
+  {
+    "id": "rest_002",
+    "name": "Sushi Express",
+    "cuisine": "Japanese",
+    "rating": 4.8,
+    "address": "456 University Way, Kelowna, BC",
+    "is_active": true
+  },
+  {
+    "id": "rest_001",
+    "name": "Burger Joint",
+    "cuisine": "American",
+    "rating": 4.5,
+    "address": "123 Main Street, Kelowna, BC",
+    "is_active": true
+  },
+  {
+    "id": "rest_002",
+    "name": "Sushi Express",
+    "cuisine": "Japanese",
+    "rating": 4.8,
+    "address": "456 University Way, Kelowna, BC",
+    "is_active": true
+  },
+  {
+    "id": "rest_001",
+    "name": "Burger Joint",
+    "cuisine": "American",
+    "rating": 4.5,
+    "address": "123 Main Street, Kelowna, BC",
+    "is_active": true
+  }
+]
