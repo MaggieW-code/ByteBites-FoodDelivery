@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from fastapi import FastAPI
 
 from backend.app.routes.health import router as health_router
