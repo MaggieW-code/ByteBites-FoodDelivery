@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 from pydantic import ValidationError
 from pytest import raises
@@ -37,7 +36,7 @@ def test_validate_get_restaurants_service(tmp_path) -> None:
         encoding="utf-8",
     )
 
-    repository = RestaurantRepository(Path(test_file))
+    repository = RestaurantRepository(test_file)
     service = RestaurantService(repository)
 
     data = service.get_restaurants()
@@ -78,7 +77,7 @@ def test_validate_get_restaurants_service_id_fail(tmp_path) -> None:
         encoding="utf-8",
     )
 
-    repository = RestaurantRepository(Path(test_file))
+    repository = RestaurantRepository(test_file)
     service = RestaurantService(repository)
 
     with raises(ValidationError):
@@ -112,7 +111,7 @@ def test_validate_get_restaurants_service_name_fail(tmp_path) -> None:
         encoding="utf-8",
     )
 
-    repository = RestaurantRepository(Path(test_file))
+    repository = RestaurantRepository(test_file)
     service = RestaurantService(repository)
 
     with raises(ValidationError):
@@ -146,7 +145,7 @@ def test_validate_get_restaurants_service_cuisine_fail(tmp_path) -> None:
         encoding="utf-8",
     )
 
-    repository = RestaurantRepository(Path(test_file))
+    repository = RestaurantRepository(test_file)
     service = RestaurantService(repository)
 
     with raises(ValidationError):
@@ -180,7 +179,7 @@ def test_validate_get_restaurants_service_rating_fail(tmp_path) -> None:
         encoding="utf-8",
     )
 
-    repository = RestaurantRepository(Path(test_file))
+    repository = RestaurantRepository(test_file)
     service = RestaurantService(repository)
 
     with raises(ValidationError):
@@ -214,7 +213,7 @@ def test_validate_get_restaurants_service_address_fail(tmp_path) -> None:
         encoding="utf-8",
     )
 
-    repository = RestaurantRepository(Path(test_file))
+    repository = RestaurantRepository(test_file)
     service = RestaurantService(repository)
 
     with raises(ValidationError):
@@ -248,7 +247,7 @@ def test_validate_get_restaurants_service_is_active_fail(tmp_path) -> None:
         encoding="utf-8",
     )
 
-    repository = RestaurantRepository(Path(test_file))
+    repository = RestaurantRepository(test_file)
     service = RestaurantService(repository)
 
     with raises(ValidationError):

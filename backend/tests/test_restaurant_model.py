@@ -11,7 +11,7 @@ def test_restaurant_model_successful() -> None:
         cuisine="Japanese",
         rating=4.5,
         address="123 Main St",
-        active=True,
+        is_active=True,
     )
 
     assert restaurant.id == "rest_000"
@@ -19,7 +19,7 @@ def test_restaurant_model_successful() -> None:
     assert restaurant.cuisine == "Japanese"
     assert restaurant.rating == 4.5
     assert restaurant.address == "123 Main St"
-    assert restaurant.active is True
+    assert restaurant.is_active is True
 
 def test_restaurant_model_invalid_id_length_min() -> None:
     with raises(ValidationError):
@@ -29,7 +29,7 @@ def test_restaurant_model_invalid_id_length_min() -> None:
             cuisine="Japanese",
             rating=4.5,
             address="123 Main St",
-            active=True,
+            is_active=True,
         )
 
 def test_restaurant_model_invalid_id_length_max() -> None:
@@ -40,7 +40,7 @@ def test_restaurant_model_invalid_id_length_max() -> None:
             cuisine="Japanese",
             rating=4.5,
             address="123 Main St",
-            active=True,
+            is_active=True,
         )
 
 def test_restaurant_model_invalid_name_length() -> None:
@@ -51,7 +51,7 @@ def test_restaurant_model_invalid_name_length() -> None:
             cuisine="Japanese",
             rating=4.5,
             address="123 Main St",
-            active=True,
+            is_active=True,
         )
 
 def test_restaurant_model_invalid_cuisine_length() -> None:
@@ -62,7 +62,7 @@ def test_restaurant_model_invalid_cuisine_length() -> None:
             cuisine="",
             rating=4.5,
             address="123 Main St",
-            active=True,
+            is_active=True,
         )
 
 def test_restaurant_model_invalid_rating_scope() -> None:
@@ -73,7 +73,7 @@ def test_restaurant_model_invalid_rating_scope() -> None:
             cuisine="Japanese",
             rating=6.0,
             address="123 Main St",
-            active=True,
+            is_active=True,
         )
 
 def test_restaurant_model_invalid_rating_strict() -> None:
@@ -84,7 +84,7 @@ def test_restaurant_model_invalid_rating_strict() -> None:
             cuisine="Japanese",
             rating="4.5",
             address="123 Main St",
-            active=True,
+            is_active=True,
         )
 
 def test_restaurant_model_invalid_address_length() -> None:
@@ -95,7 +95,7 @@ def test_restaurant_model_invalid_address_length() -> None:
             cuisine="Japanese",
             rating=4.5,
             address="",
-            active=True,
+            is_active=True,
         )
 
 def test_restaurant_model_invalid_active_strict() -> None:
@@ -106,5 +106,5 @@ def test_restaurant_model_invalid_active_strict() -> None:
             cuisine="Japanese",
             rating=4.5,
             address="123 Main St",
-            active="True",
+            is_active="True",
         )

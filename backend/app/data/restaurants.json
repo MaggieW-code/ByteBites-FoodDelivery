@@ -16,7 +16,7 @@
     "is_active": true
   },
   {
-    "id": "rest_001",
+    "id": "rest_003",
     "name": "Burger Joint",
     "cuisine": "American",
     "rating": 4.5,
@@ -24,7 +24,7 @@
     "is_active": true
   },
   {
-    "id": "rest_002",
+    "id": "rest_004",
     "name": "Sushi Express",
     "cuisine": "Japanese",
     "rating": 4.8,
@@ -32,7 +32,7 @@
     "is_active": true
   },
   {
-    "id": "rest_001",
+    "id": "rest_005",
     "name": "Burger Joint",
     "cuisine": "American",
     "rating": 4.5,
