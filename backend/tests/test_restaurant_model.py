@@ -1,5 +1,5 @@
-from pytest import raises
 from pydantic import ValidationError
+from pytest import raises
 
 from backend.app.models.restaurant_model import Restaurant
 

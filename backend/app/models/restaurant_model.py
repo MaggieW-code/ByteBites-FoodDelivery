@@ -7,4 +7,4 @@ class  Restaurant(BaseModel):
     cuisine: str = Field(strict=True, min_length=1)
     rating: float = Field(strict=True, ge=0, le=5)
     address: str = Field(strict=True, min_length=1)
-    active: bool = Field(strict=True)
+    is_active: bool = Field(strict=True)

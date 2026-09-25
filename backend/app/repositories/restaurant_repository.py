@@ -19,7 +19,7 @@ class RestaurantRepository:
         """
         Open provided path as file and load json expected contents. 
         
-        ### Catches:
+        ### Raises:
         FileNotFoundError \n
         JSONDecodeError   \n
         Data not being a list after instantiation.  \n
