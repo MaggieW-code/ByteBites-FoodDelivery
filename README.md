@@ -12,12 +12,12 @@ foundation only.
 - FastAPI and Uvicorn
 - Pydantic (provided by FastAPI)
 - pytest and FastAPI `TestClient`
-- JSON/CSV persistence (planned; no database)
+- JSON persistence (no database)
 - Git and GitHub
 
 ## Current status
 
-The project has a minimal FastAPI application with a `GET /health` endpoint,
+The project has a minimal FastAPI application with a `GET /health`, `GET/restaurants` endpoint,
 pytest coverage for that endpoint, and the initial layered architecture
 scaffolding. Application features have not been implemented yet.
 
@@ -25,7 +25,7 @@ scaffolding. Application features have not been implemented yet.
 
 The planned architecture is:
 
-**Frontend → FastAPI Routes → Services → Repositories → JSON/CSV Persistence**
+**Frontend → FastAPI Routes → Services → Repositories → JSON Persistence**
 
 Routes handle HTTP concerns, services contain business logic, and repositories
 hide persistence details. See [docs/architecture.md](docs/architecture.md) for
@@ -37,9 +37,9 @@ the layer responsibilities.
 ## Repository structure
 
 ```text
+main.py
 backend/
 ├── app/
-│   ├── main.py
 │   ├── routes/
 │   ├── services/
 │   ├── repositories/
@@ -66,11 +66,18 @@ python -m pip install -r requirements.txt
 From the repository root, with the virtual environment activated:
 
 ```bash
-uvicorn backend.app.main:app --reload
+uvicorn main:app --reload
 ```
 
-The API will be available at `http://127.0.0.1:8000`. Check
-`http://127.0.0.1:8000/health` for the initial health response.
+The API will be available at `http://127.0.0.1:8000`. 
+
+## Endpoints
+
+- `GET /health` — returns `{"status": "ok"}` to confirm the API is running.
+- `GET /restaurants` — returns the list of restaurants, each with `id`,
+  `name`, `cuisine`, `rating`, `address`, and `is_active`. The bundled
+  `backend/app/data/restaurants.json` file ships with representative sample
+  data, so this endpoint works out of the box.
 
 ## Run tests
 
@@ -82,6 +89,14 @@ pytest
 
 Tests use in-memory HTTP requests through FastAPI's `TestClient`; they do not
 modify application data.
+
+## Configurable
+
+Restaurant data is stored as JSON at `backend/app/data/restaurants.json` by default.
+
+You can change this by setting the `RESTAURANT_TRIAL_PATH` environment variable
+to a different file path. This is useful for testing, since tests can point
+to their own temporary data file instead of using the real one.
 
 ## Team development workflow
 
