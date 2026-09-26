@@ -106,5 +106,6 @@ For each change, follow:
 Peer Review → Merge**
 
 Implementation work should not be committed directly to `main`. Keep changes
-focused, include tests for changed behavior, and use pull requests for review.
+focused, include tests for changed behavior, and use pull requests for review. Furthermore, branches
+should be deleted after merge once all work is completed.
 `name/feature/short-description-of-ticket`
