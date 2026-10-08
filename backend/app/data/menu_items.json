@@ -1,0 +1,82 @@
+[
+    {
+        "id": "menu_001",
+        "restaurant_id": "rest_001",
+        "name": "Cheese Burger",
+        "category": "Mains",
+        "price": 15.99,
+        "is_available": true
+    },
+    {
+        "id": "menu_002",
+        "restaurant_id": "rest_001",
+        "name": "French Fries",
+        "category": "Sides",
+        "price": 4.99,
+        "is_available": true
+    },
+    {
+        "id": "menu_003",
+        "restaurant_id": "rest_001",
+        "name": "Chocolate Milkshake",
+        "category": "Drinks",
+        "price": 6.49,
+        "is_available": false
+    },
+    {
+        "id": "menu_004",
+        "restaurant_id": "rest_002",
+        "name": "Salmon Nigiri",
+        "category": "Mains",
+        "price": 13.50,
+        "is_available": true
+    },
+    {
+        "id": "menu_005",
+        "restaurant_id": "rest_002",
+        "name": "Miso Soup",
+        "category": "Sides",
+        "price": 3.99,
+        "is_available": true
+    },
+    {
+        "id": "menu_006",
+        "restaurant_id": "rest_003",
+        "name": "Carne Asada Tacos",
+        "category": "Mains",
+        "price": 12.99,
+        "is_available": true
+    },
+    {
+        "id": "menu_007",
+        "restaurant_id": "rest_003",
+        "name": "Churros",
+        "category": "Desserts",
+        "price": 5.49,
+        "is_available": true
+    },
+    {
+        "id": "menu_008",
+        "restaurant_id": "rest_004",
+        "name": "Butter Chicken",
+        "category": "Mains",
+        "price": 16.99,
+        "is_available": true
+    },
+    {
+        "id": "menu_009",
+        "restaurant_id": "rest_004",
+        "name": "Garlic Naan",
+        "category": "Sides",
+        "price": 3.49,
+        "is_available": true
+    },
+    {
+        "id": "menu_010",
+        "restaurant_id": "rest_005",
+        "name": "Chicken Nuggets",
+        "category": "Mains",
+        "price": 8.99,
+        "is_available": true
+    }
+]
