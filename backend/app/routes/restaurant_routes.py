@@ -1,8 +1,11 @@
 from pathlib import Path
+from fastapi import APIRouter, HTTPException, Path as PathParameter, status
 
-from fastapi import APIRouter, HTTPException, Path as PathParameter
-
-from backend.app.models.restaurant_model import Restaurant
+from backend.app.models.restaurant_model import (
+    Restaurant,
+    CreateRestaurantRequest,
+    UpdateRestaurantRequest,
+)
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.restaurant_service import RestaurantNotFoundError, RestaurantService
 
@@ -48,3 +51,42 @@ def restaurant_details(
             status_code=404,
             detail=str(error),
         ) from error
+
+
+@router.post(
+    "/restaurants",
+    response_model=Restaurant,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_restaurant(
+    request: CreateRestaurantRequest,
+) -> Restaurant:
+    return restaurant_service.create_restaurant(request)
+
+
+@router.patch(
+    "/restaurants/{restaurant_id}",
+    response_model=Restaurant,
+)
+def update_restaurant(
+    restaurant_id: str,
+    request: UpdateRestaurantRequest,
+) -> Restaurant:
+    try:
+        updated = restaurant_service.update_restaurant(
+            restaurant_id,
+            request,
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+    if updated is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Restaurant not found",
+        )
+
+    return updated

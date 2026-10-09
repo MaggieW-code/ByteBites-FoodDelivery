@@ -53,3 +53,32 @@ class RestaurantRepository:
                 return restaurant
 
         return None
+
+    def create(self, restaurant: dict) -> dict:
+        restaurants = self.get_all()
+        restaurants.append(restaurant)
+
+        with self.data_path.open("w", encoding="utf-8") as file:
+            json.dump(restaurants, file, indent=2)
+
+        return restaurant
+
+    def update(self, restaurant_id: str, updates: dict) -> dict | None:
+        restaurants = self.get_all()
+
+        for restaurant in restaurants:
+            if restaurant["id"] == restaurant_id:
+                safe_updates = {
+                    key: value
+                    for key, value in updates.items()
+                    if key in {"name", "cuisine", "address"}
+                }
+
+                restaurant.update(safe_updates)
+
+                with self.data_path.open("w", encoding="utf-8") as file:
+                    json.dump(restaurants, file, indent=2)
+
+                return restaurant
+
+        return None
