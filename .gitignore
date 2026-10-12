@@ -22,3 +22,5 @@ ENV/
 
 # Node.js & React 
 node_modules/
+.parcel-cache/
+dist/
