@@ -1,7 +1,9 @@
-const container = document.querySelector(".container");
+import { createRoot } from "react-dom/client";
+import App from "./App";
 
-if (!container) {
-    throw new Error(
-        "Root container was not found"
-    );
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+    throw new Error("Could not find the root element")
 }
+
+createRoot(rootElement).render(<App />);

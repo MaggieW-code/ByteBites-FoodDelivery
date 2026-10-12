@@ -23,3 +23,12 @@ Use `.tsx` when developing a feature that has a UI. If something can be offloade
 
 ## Type Validation
 - Exists only during compiling. Doesn't check user inputs during runtime, so type validation falls back to the service layer
+
+# Vertical Stack 
+|Directory|Responsibility|
+|:---|---:|
+|``layouts/``| General layouts of pages, examples being a dedicated page layout for customers vs admin |
+|``pages/``| The specific UI elements for a given display |
+|``components/``| Reusable UI pieces |
+|``routes/``| Handles going from page to page |
+|``types/``| Definitions for what specific data should look like |
