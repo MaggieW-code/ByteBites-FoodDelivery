@@ -28,7 +28,7 @@ Use `.tsx` when developing a feature that has a UI. If something can be offloade
 |Directory|Responsibility|
 |:---|---:|
 |``layouts/``| General layouts of pages, examples being a dedicated page layout for customers vs admin |
-|``pages/``| The specific UI elements for a given display |
+|``pages/``| The specific UI elements for a given display & the page specific logic |
 |``components/``| Reusable UI pieces |
 |``routes/``| Handles going from page to page |
 |``types/``| Definitions for what specific data should look like |

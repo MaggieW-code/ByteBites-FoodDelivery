@@ -6,13 +6,11 @@ type GenericLayoutProps = {
 
 export function GenericLayout({children}: GenericLayoutProps) {
     return(
-        <div className="layout">
-            <header className="layout-header">
+        <div className="generic-layout_container">
+            <header className="generic-layout_header">
                 <h1>ByteBites</h1>
             </header>
-            <main className="layout-body">
-                {children}
-            </main>
+            {children}
         </div>
     ); 
 }
