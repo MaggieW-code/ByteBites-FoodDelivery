@@ -101,3 +101,95 @@ def test_add_menu_user_cannot_set_id(
 
     assert response.status_code == 201
     assert response.json()["id"] != "hacked01"
+
+def _write_update_test_menus(data_path: Path) -> list[dict]:
+    _menus = [
+        {
+            "id": "menu_002",
+            "restaurant_id": "rest_001",
+            "name": "French Fries",
+            "category": "Sides",
+            "price": 4.99,
+            "is_available": True
+        }
+    ]
+
+    data_path.write_text(
+        json.dumps(_menus),
+        encoding="utf-8",
+    )
+
+    return _menus
+
+def test_update_menu_returns_200(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    data_path = tmp_path / "menu_items.json"
+    _write_update_test_menus(data_path)
+    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.patch(
+            "/restaurants/rest_001/menu/menu_002",
+            json={"price": 3.99},
+        )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["id"] == "menu_002"
+    assert body["restaurant_id"] == "rest_001"
+    assert body["price"] == 3.99
+    assert body["name"] == "French Fries"
+
+    saved = json.loads(data_path.read_text(encoding="utf-8"))
+
+    assert saved == [body]
+
+def test_update_menu_unknown_item_returns_404(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    data_path = tmp_path / "menu_items.json"
+    _menus = _write_update_test_menus(data_path)
+    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.patch(
+            "/restaurants/rest_001/menu/menu_999",
+            json={"price": 3.99},
+        )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Menu item not found"}
+    assert json.loads(data_path.read_text(encoding="utf-8")) == _menus
+
+def test_update_menu_wrong_restaurant_returns_404(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    data_path = tmp_path / "menu_items.json"
+    _menus = _write_update_test_menus(data_path)
+    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.patch(
+            "/restaurants/rest_002/menu/menu_002",
+            json={"price": 3.99},
+        )
+
+    assert response.status_code == 404
+    assert json.loads(data_path.read_text(encoding="utf-8")) == _menus
+
+def test_update_menu_invalid_price_returns_422(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    data_path = tmp_path / "menu_items.json"
+    _menus = _write_update_test_menus(data_path)
+    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.patch(
+            "/restaurants/rest_001/menu/menu_002",
+            json={"price": -1},
+        )
+
+    assert response.status_code == 422
+    assert json.loads(data_path.read_text(encoding="utf-8")) == _menus
