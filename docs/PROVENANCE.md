@@ -83,3 +83,81 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Ran the full test suite (55 passed, including the existing tests) and checked that
   the tests use temporary files and do not modify the real data files.
 - PR: TBD
+
+### Entry 6
+
+- Student(s): Junho Kim
+- Artifact: backend/app/models/update_menu_item_model.py
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: Define the request model for the Update Menu Item user story (#76).
+- Influence: The AI explained why an update needs its own model with all fields optional (so the
+  owner can send only the fields that change), and explained `str | None`, `default = None` and
+  `gt` vs `ge`. The student wrote the model by copying `CreateMenuItem` and making each field
+  optional, then fixed the issues the AI pointed out in review (a missing comma, a `0.0` price
+  default instead of `None`, and an accidentally copied `MenuItem` class).
+- Validation: Checked that partial updates are accepted and that invalid values (empty name or
+  category, zero or negative price, wrong types) are rejected; covered by
+  `backend/tests/test_update_menu_item_model.py`.
+- PR: TBD
+
+### Entry 7
+
+- Student(s): Junho Kim
+- Artifact: backend/app/repositories/menu_repository.py (`update` method)
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: Persist menu item updates for the Update Menu Item user story (#76).
+- Influence: The AI suggested basing `update` on the existing `add` method and provided the
+  `enumerate` loop that finds the item with the matching id and replaces it, and explained how it
+  works. The student wrote the method.
+- Validation: Ran `update` against a temporary JSON file and confirmed only the matching item
+  changed; covered by `backend/tests/test_menu_repository.py`.
+- PR: TBD
+
+### Entry 8
+
+- Student(s): Junho Kim
+- Artifact: backend/app/services/menu_service.py (`update_menu` method, `MenuItemNotFoundError`)
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: Implement the update business logic for the Update Menu Item user story (#76).
+- Influence: The AI proposed the design (find the item matching both the menu item id and the
+  restaurant id, apply only the fields that were sent, save, return it, and raise
+  `MenuItemNotFoundError` otherwise), explained it as plain-English steps, and provided the code
+  for each step, including `model_dump(exclude_none=True)` and `model_copy(update=...)`. The
+  student typed the code.
+- Validation: Ran the service against a temporary JSON file and confirmed price-only updates,
+  unknown items and wrong restaurants behave correctly; covered by
+  `backend/tests/test_menu_service.py`.
+- PR: TBD
+
+### Entry 9
+
+- Student(s): Junho Kim
+- Artifact: backend/app/routes/menu_routes.py (`PATCH /restaurants/{restaurant_id}/menu/{menu_item_id}`)
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: Expose updating a menu item as an API endpoint for the Update Menu Item user story (#76).
+- Influence: The AI provided the route code, including the try/except that turns
+  `MenuItemNotFoundError` into a 404, and explained the parameters and status codes. The student
+  typed the code and fixed the issues the AI pointed out in review (missing `{menu_item_id}` in
+  the URL, missing imports, duplicate imports).
+- Validation: Confirmed the endpoint returns 200 for a valid update, 404 for an unknown item or
+  wrong restaurant, and 422 for an invalid price; covered by `backend/tests/test_menu_routes.py`.
+- PR: TBD
+
+### Entry 10
+
+- Student(s): Junho Kim
+- Artifact: backend/tests/test_update_menu_item_model.py, and the update tests added to
+  backend/tests/test_menu_repository.py, backend/tests/test_menu_service.py,
+  backend/tests/test_menu_routes.py
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Test the model, repository, service and route for the Update Menu Item user story (#76).
+- Influence: The AI wrote all 22 update tests, following the format of the existing menu test
+  files, and mapped them to the acceptance criteria of #76.
+- Validation: Ran the full test suite (77 passed, including the existing tests) and checked that
+  the tests use temporary files and do not modify the real data files.
+- PR: TBD
