@@ -30,7 +30,7 @@ class MenuRepository:
     def update(self, item: MenuItem):
         # read
         menus = self.get_all()
-        # append item to menus
+        # search all round and update that has the same id
         for index, menu in enumerate(menus):
             if menu["id"] == item.id:
                 menus[index] = item.model_dump()
