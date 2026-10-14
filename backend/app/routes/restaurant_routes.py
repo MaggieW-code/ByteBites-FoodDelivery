@@ -16,11 +16,6 @@ restaurant_service = RestaurantService(
     restaurant_repository
 )
 
-@router.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
-
 @router.get("/restaurants", response_model=list[Restaurant])
 def restaurants() -> list[Restaurant]:
     return restaurant_service.get_restaurants()
-
