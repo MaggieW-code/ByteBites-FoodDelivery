@@ -1,0 +1,103 @@
+import json
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from pytest import MonkeyPatch
+
+from backend.app.routes import menu_routes
+
+# Small app with only the menu router, so these tests don't depend on main.py
+app = FastAPI()
+app.include_router(menu_routes.router)
+
+
+def test_add_menu_returns_201(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    data_path = tmp_path / "menu_items.json"
+    data_path.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
+            "/restaurants/rest_001/menu",
+            json={
+                "name": "Pho",
+                "category": "Noodles",
+                "price": 14.99,
+                "is_available": True,
+            },
+        )
+
+    assert response.status_code == 201
+
+    body = response.json()
+
+    assert len(body["id"]) == 8
+    assert body["restaurant_id"] == "rest_001"
+    assert body["name"] == "Pho"
+    assert body["category"] == "Noodles"
+    assert body["price"] == 14.99
+    assert body["is_available"] is True
+
+    saved = json.loads(data_path.read_text(encoding="utf-8"))
+
+    assert saved == [body]
+
+def test_add_menu_missing_field_returns_422(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    data_path = tmp_path / "menu_items.json"
+    data_path.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
+            "/restaurants/rest_001/menu",
+            json={"name": "Pho"},
+        )
+
+    assert response.status_code == 422
+    assert json.loads(data_path.read_text(encoding="utf-8")) == []
+
+def test_add_menu_invalid_price_returns_422(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    data_path = tmp_path / "menu_items.json"
+    data_path.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
+            "/restaurants/rest_001/menu",
+            json={
+                "name": "Pho",
+                "category": "Noodles",
+                "price": 0,
+                "is_available": True,
+            },
+        )
+
+    assert response.status_code == 422
+    assert json.loads(data_path.read_text(encoding="utf-8")) == []
+
+def test_add_menu_user_cannot_set_id(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    data_path = tmp_path / "menu_items.json"
+    data_path.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
+            "/restaurants/rest_001/menu",
+            json={
+                "id": "hacked01",
+                "name": "Pho",
+                "category": "Noodles",
+                "price": 14.99,
+                "is_available": True,
+            },
+        )
+
+    assert response.status_code == 201
+    assert response.json()["id"] != "hacked01"
