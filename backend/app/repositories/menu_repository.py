@@ -27,6 +27,16 @@ class MenuRepository:
         with self.data_path.open("w", encoding = "utf-8") as file:
             json.dump(menus, file, indent = 2)
 
+    def update(self, item: MenuItem):
+        # read
+        menus = self.get_all()
+        # append item to menus
+        for index, menu in enumerate(menus):
+            if menu["id"] == item.id:
+                menus[index] = item.model_dump()
+        with self.data_path.open("w", encoding = "utf-8") as file:
+            json.dump(menus, file, indent = 2)
+
     def get_all(self) -> list[dict]:
         try:
             with self.data_path.open("r", encoding ="utf-8") as file:
