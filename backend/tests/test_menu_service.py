@@ -4,8 +4,9 @@ from pydantic import ValidationError
 from pytest import raises
 
 from backend.app.models.menu_Item_model import CreateMenuItem, MenuItem
+from backend.app.models.update_menu_item_model import UpdateMenuItem
 from backend.app.repositories.menu_repository import MenuRepository
-from backend.app.services.menu_service import MenuService
+from backend.app.services.menu_service import MenuItemNotFoundError, MenuService
 
 
 def test_add_menu_service(tmp_path) -> None:
@@ -140,3 +141,125 @@ def test_get_menu_service_price_fail(tmp_path) -> None:
 
     with raises(ValidationError):
         service.get_menu()
+
+def _write_update_test_menus(test_file) -> list[dict]:
+    _menus = [
+        {
+            "id": "menu_001",
+            "restaurant_id": "rest_001",
+            "name": "Cheese Burger",
+            "category": "Mains",
+            "price": 15.99,
+            "is_available": True
+        },
+        {
+            "id": "menu_002",
+            "restaurant_id": "rest_001",
+            "name": "French Fries",
+            "category": "Sides",
+            "price": 4.99,
+            "is_available": True
+        }
+    ]
+
+    test_file.write_text(
+        json.dumps(_menus),
+        encoding="utf-8",
+    )
+
+    return _menus
+
+def test_update_menu_service_only_price(tmp_path) -> None:
+    test_file = tmp_path / "menu_items.json"
+    _menus = _write_update_test_menus(test_file)
+
+    repository = MenuRepository(test_file)
+    service = MenuService(repository)
+
+    updated = service.update_menu("rest_001", "menu_002", UpdateMenuItem(price=3.99))
+
+    assert isinstance(updated, MenuItem)
+    assert updated.id == "menu_002"
+    assert updated.restaurant_id == "rest_001"
+    assert updated.price == 3.99
+    assert updated.name == "French Fries"
+    assert updated.category == "Sides"
+    assert updated.is_available is True
+
+    saved = repository.get_all()
+
+    assert saved[0] == _menus[0]
+    assert saved[1] == updated.model_dump()
+
+def test_update_menu_service_all_fields(tmp_path) -> None:
+    test_file = tmp_path / "menu_items.json"
+    _write_update_test_menus(test_file)
+
+    repository = MenuRepository(test_file)
+    service = MenuService(repository)
+
+    data = UpdateMenuItem(
+        name="Curly Fries",
+        category="Snacks",
+        price=5.49,
+        is_available=False,
+    )
+
+    updated = service.update_menu("rest_001", "menu_002", data)
+
+    assert updated.name == "Curly Fries"
+    assert updated.category == "Snacks"
+    assert updated.price == 5.49
+    assert updated.is_available is False
+    assert updated.id == "menu_002"
+    assert updated.restaurant_id == "rest_001"
+
+def test_update_menu_service_no_fields_changes_nothing(tmp_path) -> None:
+    test_file = tmp_path / "menu_items.json"
+    _menus = _write_update_test_menus(test_file)
+
+    repository = MenuRepository(test_file)
+    service = MenuService(repository)
+
+    updated = service.update_menu("rest_001", "menu_002", UpdateMenuItem())
+
+    assert updated.model_dump() == MenuItem(**_menus[1]).model_dump()
+    assert repository.get_all() == _menus
+
+def test_update_menu_service_unknown_item(tmp_path) -> None:
+    test_file = tmp_path / "menu_items.json"
+    _menus = _write_update_test_menus(test_file)
+
+    repository = MenuRepository(test_file)
+    service = MenuService(repository)
+
+    with raises(MenuItemNotFoundError):
+        service.update_menu("rest_001", "menu_999", UpdateMenuItem(price=3.99))
+
+    assert repository.get_all() == _menus
+
+def test_update_menu_service_wrong_restaurant(tmp_path) -> None:
+    test_file = tmp_path / "menu_items.json"
+    _menus = _write_update_test_menus(test_file)
+
+    repository = MenuRepository(test_file)
+    service = MenuService(repository)
+
+    with raises(MenuItemNotFoundError):
+        service.update_menu("rest_002", "menu_002", UpdateMenuItem(price=3.99))
+
+    assert repository.get_all() == _menus
+
+def test_update_menu_service_shows_in_get_menu(tmp_path) -> None:
+    test_file = tmp_path / "menu_items.json"
+    _write_update_test_menus(test_file)
+
+    repository = MenuRepository(test_file)
+    service = MenuService(repository)
+
+    service.update_menu("rest_001", "menu_002", UpdateMenuItem(price=3.99))
+
+    menu = service.get_menu()
+
+    assert menu[1].id == "menu_002"
+    assert menu[1].price == 3.99
