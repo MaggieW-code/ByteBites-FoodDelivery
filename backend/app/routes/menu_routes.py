@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Path as PathParameter
+from backend.app.models.menu_Item_model import CreateMenuItem
 
 from backend.app.models.menu_model import Menu
 from backend.app.repositories.menu_repository import MenuRepository
@@ -29,3 +30,7 @@ def restaurant_menu(
         return menu_service.get_menu(restaurant_id)
     except MenuRestaurantNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
+
+@router.post("/restaurants/{restaurant_id}/menu", response_model=MenuItem, status_code=201)
+def add_menu(restaurant_id: str, data: CreateMenuItem) -> MenuItem:
+    return menu_service.add_menu(restaurant_id, data)
