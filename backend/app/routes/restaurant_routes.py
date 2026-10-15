@@ -24,15 +24,27 @@ def restaurants() -> list[Restaurant]:
 @router.get(
     "/restaurants/{restaurant_id}",
     response_model=Restaurant,
-    description="Retrieve a restaurant by its stable eight-character identifier.",
-    responses={404: {"description": "No restaurant exists with the requested identifier."}},
+    summary="Get restaurant details",
+    description="Retrieve a restaurant by its unique ID.",
+    responses={
+        404: {"description": "Restaurant not found"}
+    },
 )
 def restaurant_details(
     restaurant_id: str = PathParameter(
-        ..., min_length=8, max_length=8, description="Restaurant identifier, for example rest_001"
+        ...,
+        min_length=8,
+        max_length=8,
+        description="Restaurant ID, e.g. rest_001",
     ),
 ) -> Restaurant:
     try:
-        return restaurant_service.get_restaurant_by_id(restaurant_id)
+        return restaurant_service.get_restaurant_by_id(
+            restaurant_id
+        )
+
     except RestaurantNotFoundError as error:
-        raise HTTPException(status_code=404, detail=str(error)) from error
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
