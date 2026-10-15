@@ -20,3 +20,9 @@ ENV/
 # VS Code
 .vscode/
 
+# Frontend dependencies
+frontend/node_modules/
+
+# Parcel-generated files
+frontend/dist/
+frontend/.parcel-cache/
