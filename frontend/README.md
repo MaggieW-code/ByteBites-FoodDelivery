@@ -15,14 +15,14 @@
 - JSX, the visual side of the file that signals to the Typescript compiler that HTML style tags may be present within the file. 
 
 ## When to use .tsx and .ts
-Use `.tsx` when developing a feature that has a UI. If something can be offloaded and does not need a UI, such as HTTP endpoint requests then use `.ts` as this is pure logic.
+Use `.tsx` when developing a feature that has a UI. If something can be offloaded and does not need a UI, such as HTTPendpoint requests then use `.ts` as this is pure logic.
 
 ## Naming Convetions
 - PascalCase: React components and files. Also Typescript types and interfaces
 - camelCase: Functions and variables
 
 ## Type Validation
-- Exists only during compiling. Doesn't check user inputs during runtime, so type validation falls back to the service layer
+- Exists only during compiling. Doesn't check user inputs during runtime, so type validation falls back to the servicelayer
 
 # Vertical Stack 
 |Directory|Responsibility|
