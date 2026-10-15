@@ -42,3 +42,10 @@ class RestaurantRepository:
             )
 
         return data
+
+    def get_by_id(self, restaurant_id: str) -> dict | None:
+        """Find a persisted restaurant without treating storage failures as missing IDs."""
+        return next(
+            (record for record in self.get_all() if record["id"] == restaurant_id),
+            None,
+        )

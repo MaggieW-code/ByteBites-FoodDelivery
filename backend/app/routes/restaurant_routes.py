@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Path as PathParameter
 
 from backend.app.models.restaurant_model import Restaurant
 from backend.app.repositories.restaurant_repository import RestaurantRepository
-from backend.app.services.restaurant_service import RestaurantService
+from backend.app.services.restaurant_service import RestaurantNotFoundError, RestaurantService
 
 router = APIRouter()
 
@@ -19,3 +19,20 @@ restaurant_service = RestaurantService(
 @router.get("/restaurants", response_model=list[Restaurant])
 def restaurants() -> list[Restaurant]:
     return restaurant_service.get_restaurants()
+
+
+@router.get(
+    "/restaurants/{restaurant_id}",
+    response_model=Restaurant,
+    description="Retrieve a restaurant by its stable eight-character identifier.",
+    responses={404: {"description": "No restaurant exists with the requested identifier."}},
+)
+def restaurant_details(
+    restaurant_id: str = PathParameter(
+        ..., min_length=8, max_length=8, description="Restaurant identifier, for example rest_001"
+    ),
+) -> Restaurant:
+    try:
+        return restaurant_service.get_restaurant_by_id(restaurant_id)
+    except RestaurantNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
