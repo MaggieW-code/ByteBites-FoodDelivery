@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchRestaurantById } from "../routes/CustomerRouter";
 import type { Restaurant } from "../types/restaurant";
+import { RestaurantMenu } from "./RestaurantMenuView";
 
 type Props = { restaurantId: string; onBack: () => void };
 
@@ -36,6 +37,7 @@ export function RestaurantDetails({ restaurantId, onBack }: Props) {
             <dt>Address</dt><dd>{restaurant.address}</dd>
             <dt>Status</dt><dd>{restaurant.is_active ? "Active" : "Inactive"}</dd>
           </dl>
+          <RestaurantMenu key={restaurant.id} restaurantId={restaurant.id} />
         </article>
       )}
     </main>
