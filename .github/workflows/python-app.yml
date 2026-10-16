@@ -48,7 +48,7 @@ jobs:
         status=0
         for f in $(git ls-files 'backend/*.py'); do
           name=$(basename "$f")
-          if [[ ! "$name" =~ ^[a-z0-9_]+\.py$ ]]; then
+          if [[ ! "$name" =~ ^[a-z][a-z0-9]*(_[a-z0-9]+)*\.py$ ]]; then
             echo "Use snake_case for file names: $f"; status=1
           fi
         done
