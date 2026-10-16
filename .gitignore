@@ -20,3 +20,7 @@ ENV/
 # VS Code
 .vscode/
 
+# Node.js & React 
+node_modules/
+.parcel-cache/
+dist/
