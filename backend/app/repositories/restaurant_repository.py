@@ -42,3 +42,14 @@ class RestaurantRepository:
             )
 
         return data
+
+    def get_by_id(self, restaurant_id: str) -> dict | None:
+        """Return a restaurant by ID, or None if not found."""
+
+        restaurants = self.get_all()
+
+        for restaurant in restaurants:
+            if restaurant["id"] == restaurant_id:
+                return restaurant
+
+        return None

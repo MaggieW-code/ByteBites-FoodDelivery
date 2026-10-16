@@ -32,3 +32,22 @@ Use `.tsx` when developing a feature that has a UI. If something can be offloade
 |``components/``| Reusable UI pieces |
 |``routes/``| Handles going from page to page |
 |``types/``| Definitions for what specific data should look like |
+
+## Restaurant details (#41)
+
+Run the backend on `http://127.0.0.1:8000` and the frontend with `npm start`.
+The landing page retrieves persisted restaurants from `GET /restaurants`.
+Selecting **View details** requests `GET /restaurants/{restaurant_id}` and shows
+all fields returned by the API. **Back to restaurants** returns to the list.
+
+Manual browser verification:
+- Load the page and select different restaurants; confirm the name, ID, cuisine,
+  rating, address, and status match the selected restaurant's API response.
+- Throttle requests in browser developer tools and confirm the loading message.
+- Intercept a details request with a 404 response and confirm the unavailable
+  restaurant message and working back button.
+- Block the details request or return a 500 response and confirm an error is
+  displayed and the back button still works.
+
+The browser checks above are manual; automated frontend interaction tests are
+not configured in this repository.
