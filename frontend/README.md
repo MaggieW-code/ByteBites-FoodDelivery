@@ -51,3 +51,21 @@ Manual browser verification:
 
 The browser checks above are manual; automated frontend interaction tests are
 not configured in this repository.
+
+## Restaurant menus
+
+Menus extend the existing Discover → Restaurant Details flow. Select **View
+details** on a restaurant; the details page now loads its menu below the existing
+restaurant fields. The existing layout, discovery list, and back button remain.
+The menu section shows descriptions, prices/currency, and item availability.
+Loading, empty, and failure states are provided, with a retry action on failure.
+
+Manual checks with the API running on port 8000 and frontend on port 1234:
+- Select different restaurants and verify their details and associated menus.
+- Return to the list using the existing back button and select another restaurant.
+- Throttle the network to verify loading; block a menu request and retry it.
+- Return an empty menu or 404 to verify empty and missing-restaurant states.
+- Verify an unavailable item is labeled rather than hidden.
+
+Automated frontend interaction tests are not configured; browser checks above
+must be performed manually.
