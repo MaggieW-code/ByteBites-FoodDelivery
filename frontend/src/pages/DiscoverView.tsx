@@ -22,4 +22,19 @@ export function Discover() {
       <h1>What are you craving?</h1>
       {loading && <p role="status">Loading restaurants…</p>}
       {error && <p role="alert">{error}</p>}
-      {!loading && !error && restaurants.length === 0 && <p>No restaurants
+      {!loading && !error && restaurants.length === 0 && <p>No restaurants available.</p>}
+      <ul>
+        {restaurants.map((restaurant) => (
+          <li key={restaurant.id}>
+            <Link to={`/restaurants/${encodeURIComponent(restaurant.id)}`}>
+              <h2>{restaurant.name}</h2>
+              <p>{restaurant.cuisine} · {restaurant.rating}/5</p>
+              <p>{restaurant.address}</p>
+              <span>View details</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}
