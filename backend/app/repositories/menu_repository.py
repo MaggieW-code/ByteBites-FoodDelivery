@@ -11,35 +11,19 @@ class MenuDataNotFoundError(Exception):
 # if the file isn't valid json
 class MenuDataMalformedError(Exception):
     pass
+
 # if the file is not a list
 class MenuDataError(Exception):
     pass
+
 
 class MenuRepository:
     def __init__(self, data_path: Path):
         self.data_path = data_path
 
-    def add(self, item: MenuItem):
-        # read
-        menus = self.get_all()
-        # append item to menus
-        menus.append(item.model_dump())
-        with self.data_path.open("w", encoding = "utf-8") as file:
-            json.dump(menus, file, indent = 2)
-
-    def update(self, item: MenuItem):
-        # read
-        menus = self.get_all()
-        # search all round and update that has the same id
-        for index, menu in enumerate(menus):
-            if menu["id"] == item.id:
-                menus[index] = item.model_dump()
-        with self.data_path.open("w", encoding = "utf-8") as file:
-            json.dump(menus, file, indent = 2)
-
     def get_all(self) -> list[dict]:
         try:
-            with self.data_path.open("r", encoding ="utf-8") as file:
+            with self.data_path.open("r", encoding="utf-8") as file:
                 data = json.load(file)
         except FileNotFoundError as e:
             raise MenuDataNotFoundError(
@@ -50,11 +34,13 @@ class MenuRepository:
                 f"The file isn't valid json: {self.data_path}"
             ) from e
         if not isinstance(data, list):
-            raise MenuDataError(
-                "Menu is not in the list"
-            ) 
-        
+            raise MenuDataError("Menu is not in the list")
+
         return data
+
+    def _save(self, menus: list[dict]) -> None:
+        with self.data_path.open("w", encoding="utf-8") as file:
+            json.dump(menus, file, indent=2)
 
     def get_by_restaurant_id(self, restaurant_id: str) -> dict | None:
         with self.data_path.open("r", encoding="utf-8") as file:
@@ -64,3 +50,39 @@ class MenuRepository:
             if menu["restaurant_id"] == restaurant_id:
                 return menu
         return None
+
+    def find_item(self, restaurant_id: str, item_id: str) -> dict | None:
+        menu = self.get_by_restaurant_id(restaurant_id)
+        if menu is None:
+            return None
+        for item in menu["items"]:
+            if item["id"] == item_id:
+                return item
+        return None
+
+    def add(self, item: MenuItem) -> None:
+        menus = self.get_all()
+        entry = item.model_dump(exclude={"restaurant_id"})
+
+        for menu in menus:
+            if menu["restaurant_id"] == item.restaurant_id:
+                menu["items"].append(entry)
+                break
+        else:
+            menus.append(
+                {"restaurant_id": item.restaurant_id, "currency": "CAD", "items": [entry]}
+            )
+
+        self._save(menus)
+
+    def update(self, item: MenuItem) -> None:
+        menus = self.get_all()
+        entry = item.model_dump(exclude={"restaurant_id"})
+
+        for menu in menus:
+            if menu["restaurant_id"] == item.restaurant_id:
+                for index, existing in enumerate(menu["items"]):
+                    if existing["id"] == item.id:
+                        menu["items"][index] = entry
+
+        self._save(menus)
