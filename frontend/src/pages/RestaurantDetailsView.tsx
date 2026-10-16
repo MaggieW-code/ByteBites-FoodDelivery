@@ -1,11 +1,12 @@
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { fetchRestaurantById } from "../routes/CustomerRouter";
+import { fetchRestaurantById } from "../api/restaurants";
 import type { Restaurant } from "../types/restaurant";
 import { RestaurantMenu } from "./RestaurantMenuView";
 
-type Props = { restaurantId: string; onBack: () => void };
+type Props = { restaurantId: string };
 
-export function RestaurantDetails({ restaurantId, onBack }: Props) {
+export function RestaurantDetails({ restaurantId }: Props) {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -24,7 +25,7 @@ export function RestaurantDetails({ restaurantId, onBack }: Props) {
 
   return (
     <main>
-      <button type="button" onClick={onBack}>Back to restaurants</button>
+      <Link to="/restaurants">Back to restaurants</Link>
       {loading && <p role="status">Loading restaurant details…</p>}
       {error && <p role="alert">{error}</p>}
       {restaurant && (
