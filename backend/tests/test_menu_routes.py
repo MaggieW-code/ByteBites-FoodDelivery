@@ -12,10 +12,21 @@ app = FastAPI()
 app.include_router(menu_routes.router)
 
 
+def _point_to(monkeypatch: MonkeyPatch, data_path: Path) -> None:
+    monkeypatch.setattr(
+        menu_routes.menu_service.menu_repository, "data_path", data_path
+    )
+
+
+def _stored(body: dict) -> dict:
+    """How an item is stored inside a restaurant's 'items' list."""
+    return {key: value for key, value in body.items() if key != "restaurant_id"}
+
+
 def test_add_menu_returns_201(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
-    data_path = tmp_path / "menu_items.json"
+    data_path = tmp_path / "menus.json"
     data_path.write_text("[]", encoding="utf-8")
-    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+    _point_to(monkeypatch, data_path)
 
     with TestClient(app) as test_client:
         response = test_client.post(
@@ -41,14 +52,17 @@ def test_add_menu_returns_201(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
 
     saved = json.loads(data_path.read_text(encoding="utf-8"))
 
-    assert saved == [body]
+    assert len(saved) == 1
+    assert saved[0]["restaurant_id"] == "rest_001"
+    assert saved[0]["items"] == [_stored(body)]
+
 
 def test_add_menu_missing_field_returns_422(
     tmp_path: Path, monkeypatch: MonkeyPatch
 ) -> None:
-    data_path = tmp_path / "menu_items.json"
+    data_path = tmp_path / "menus.json"
     data_path.write_text("[]", encoding="utf-8")
-    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+    _point_to(monkeypatch, data_path)
 
     with TestClient(app) as test_client:
         response = test_client.post(
@@ -59,12 +73,13 @@ def test_add_menu_missing_field_returns_422(
     assert response.status_code == 422
     assert json.loads(data_path.read_text(encoding="utf-8")) == []
 
+
 def test_add_menu_invalid_price_returns_422(
     tmp_path: Path, monkeypatch: MonkeyPatch
 ) -> None:
-    data_path = tmp_path / "menu_items.json"
+    data_path = tmp_path / "menus.json"
     data_path.write_text("[]", encoding="utf-8")
-    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+    _point_to(monkeypatch, data_path)
 
     with TestClient(app) as test_client:
         response = test_client.post(
@@ -80,12 +95,13 @@ def test_add_menu_invalid_price_returns_422(
     assert response.status_code == 422
     assert json.loads(data_path.read_text(encoding="utf-8")) == []
 
+
 def test_add_menu_user_cannot_set_id(
     tmp_path: Path, monkeypatch: MonkeyPatch
 ) -> None:
-    data_path = tmp_path / "menu_items.json"
+    data_path = tmp_path / "menus.json"
     data_path.write_text("[]", encoding="utf-8")
-    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+    _point_to(monkeypatch, data_path)
 
     with TestClient(app) as test_client:
         response = test_client.post(
@@ -102,29 +118,34 @@ def test_add_menu_user_cannot_set_id(
     assert response.status_code == 201
     assert response.json()["id"] != "hacked01"
 
+
 def _write_update_test_menus(data_path: Path) -> list[dict]:
     _menus = [
         {
-            "id": "menu_002",
             "restaurant_id": "rest_001",
-            "name": "French Fries",
-            "category": "Sides",
-            "price": 4.99,
-            "is_available": True
+            "currency": "CAD",
+            "items": [
+                {
+                    "id": "menu_002",
+                    "name": "French Fries",
+                    "category": "Sides",
+                    "description": "",
+                    "price": 4.99,
+                    "is_available": True,
+                }
+            ],
         }
     ]
 
-    data_path.write_text(
-        json.dumps(_menus),
-        encoding="utf-8",
-    )
+    data_path.write_text(json.dumps(_menus), encoding="utf-8")
 
     return _menus
 
+
 def test_update_menu_returns_200(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
-    data_path = tmp_path / "menu_items.json"
+    data_path = tmp_path / "menus.json"
     _write_update_test_menus(data_path)
-    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+    _point_to(monkeypatch, data_path)
 
     with TestClient(app) as test_client:
         response = test_client.patch(
@@ -143,14 +164,15 @@ def test_update_menu_returns_200(tmp_path: Path, monkeypatch: MonkeyPatch) -> No
 
     saved = json.loads(data_path.read_text(encoding="utf-8"))
 
-    assert saved == [body]
+    assert saved[0]["items"] == [_stored(body)]
+
 
 def test_update_menu_unknown_item_returns_404(
     tmp_path: Path, monkeypatch: MonkeyPatch
 ) -> None:
-    data_path = tmp_path / "menu_items.json"
+    data_path = tmp_path / "menus.json"
     _menus = _write_update_test_menus(data_path)
-    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+    _point_to(monkeypatch, data_path)
 
     with TestClient(app) as test_client:
         response = test_client.patch(
@@ -162,12 +184,13 @@ def test_update_menu_unknown_item_returns_404(
     assert response.json() == {"detail": "Menu item not found"}
     assert json.loads(data_path.read_text(encoding="utf-8")) == _menus
 
+
 def test_update_menu_wrong_restaurant_returns_404(
     tmp_path: Path, monkeypatch: MonkeyPatch
 ) -> None:
-    data_path = tmp_path / "menu_items.json"
+    data_path = tmp_path / "menus.json"
     _menus = _write_update_test_menus(data_path)
-    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+    _point_to(monkeypatch, data_path)
 
     with TestClient(app) as test_client:
         response = test_client.patch(
@@ -178,12 +201,13 @@ def test_update_menu_wrong_restaurant_returns_404(
     assert response.status_code == 404
     assert json.loads(data_path.read_text(encoding="utf-8")) == _menus
 
+
 def test_update_menu_invalid_price_returns_422(
     tmp_path: Path, monkeypatch: MonkeyPatch
 ) -> None:
-    data_path = tmp_path / "menu_items.json"
+    data_path = tmp_path / "menus.json"
     _menus = _write_update_test_menus(data_path)
-    monkeypatch.setattr(menu_routes.menu_repository, "data_path", data_path)
+    _point_to(monkeypatch, data_path)
 
     with TestClient(app) as test_client:
         response = test_client.patch(

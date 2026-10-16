@@ -6,6 +6,7 @@ class CreateMenuItem(BaseModel):
     category: str = Field(strict = True, min_length = 1)
     price: float = Field(strict = True, gt = 0)
     is_available: bool = Field(strict = True)
+    description: str = Field(default="", strict=True)
     
 
 
