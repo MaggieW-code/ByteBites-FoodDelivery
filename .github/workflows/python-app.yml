@@ -12,6 +12,7 @@ on:
 permissions:
   contents: read
 
+
 jobs:
   build:
 
@@ -37,3 +38,18 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+
+  check-file-names:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check snake_case file names
+      run: |
+        status=0
+        for f in $(git ls-files 'backend/*.py'); do
+          name=$(basename "$f")
+          if [[ ! "$name" =~ ^[a-z0-9_]+\.py$ ]]; then
+            echo "Use snake_case for file names: $f"; status=1
+          fi
+        done
+        exit $status
