@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { fetchRestaurants } from "../routes/CustomerRouter";
+import { fetchRestaurants } from "../api/restaurants";
 import type { Restaurant } from "../types/restaurant";
-import { RestaurantDetails } from "./RestaurantDetailsView";
+import { Link } from "react-router-dom";
 
 export function Discover() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -18,10 +17,6 @@ export function Discover() {
     return () => { active = false; };
   }, []);
 
-  if (selectedId) {
-    return <RestaurantDetails restaurantId={selectedId} onBack={() => setSelectedId(null)} />;
-  }
-
   return (
     <main>
       <h1>What are you craving?</h1>
@@ -31,12 +26,12 @@ export function Discover() {
       <ul>
         {restaurants.map((restaurant) => (
           <li key={restaurant.id}>
-            <button type="button" onClick={() => setSelectedId(restaurant.id)}>
+            <Link to={`/restaurants/${encodeURIComponent(restaurant.id)}`}>
               <h2>{restaurant.name}</h2>
               <p>{restaurant.cuisine} · {restaurant.rating}/5</p>
               <p>{restaurant.address}</p>
               <span>View details</span>
-            </button>
+            </Link>
           </li>
         ))}
       </ul>
