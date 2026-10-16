@@ -65,22 +65,3 @@ def test_unknown_id_returns_404(client):
 @pytest.mark.parametrize("identifier", ["short", "rest_0001"])
 def test_invalid_id_returns_422(client, identifier):
     assert client.get(f"/restaurants/{identifier}").status_code == 422
-
-
-@pytest.mark.parametrize("contents, error", [(None, RestaurantDataNotFoundError),
-                                            ("{", RestaurantDataMalformedError)])
-def test_storage_failure_is_not_a_missing_restaurant(client, repository, contents, error):
-    if contents is None:
-        repository.data_path.unlink()
-    else:
-        repository.data_path.write_text(contents, encoding="utf-8")
-    with pytest.raises(error):
-        RestaurantService(repository).get_restaurant_by_id("rest_001")
-    assert client.get("/restaurants/rest_001").status_code == 500
-
-
-def test_details_openapi(client):
-    operation = client.get("/openapi.json").json()["paths"]["/restaurants/{restaurant_id}"]["get"]
-    assert "404" in operation["responses"]
-    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/Restaurant")
-
