@@ -1,0 +1,374 @@
+name: Backend Tests
+
+on:
+  pull_request:
+      branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read   # lets the job look up the PR a pushed commit belongs to
+  issues: read          # lets the job read the linked ticket's milestone
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false   # let every Python version finish and report, even if one fails
+      matrix:
+        # Matches the "Python" options in the CI Test Runs database
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      # You can test your matrix by printing the current Python version
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Install dependencies
+        id: install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-json-report
+
+      - name: Run backend tests
+        id: pytest
+        run: >
+          pytest backend/tests -rA
+          --json-report --json-report-file=report.json
+          --junitxml=report.xml
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report-py${{ matrix.python-version }}
+          path: |
+            report.json
+            report.xml
+          if-no-files-found: ignore
+
+      - name: Find PR and ticket milestone
+        id: pr
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          ms=""; ms_src=""
+          pr=$(gh api "repos/$REPO/commits/$SHA/pulls" \
+            --jq '([.[] | select(.state == "open")][0] // .[0]) // empty | "\(.number)|\(.user.login)"' \
+            2>/dev/null || true)
+
+          if [ -n "$pr" ]; then
+            export num="${pr%%|*}"
+            echo "number=$num"       >> "$GITHUB_OUTPUT"
+            echo "author=${pr#*|}"   >> "$GITHUB_OUTPUT"
+
+            # 1) Milestone on the PR itself, else on a ticket the PR closes ("Closes #12")
+            found=$(gh api graphql \
+              -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){
+                milestone{title}
+                closingIssuesReferences(first:10){nodes{number milestone{title}}}}}}' \
+              -f o="${REPO%/*}" -f r="${REPO#*/}" -F n="$num" \
+              --jq '.data.repository.pullRequest |
+                    if .milestone then "\(.milestone.title)|PR #\(env.num)"
+                    else ([.closingIssuesReferences.nodes[] | select(.milestone)][0]
+                          | if . then "\(.milestone.title)|ticket #\(.number)" else empty end)
+                    end' 2>/dev/null || true)
+            ms="${found%|*}"; ms_src="${found##*|}"
+          fi
+
+          # 2) No PR/milestone yet: use a ticket referenced in the commit message ("#12")
+          if [ -z "$ms" ]; then
+            for n in $(printf '%s' "$COMMIT_MSG" | grep -oE '#[0-9]+' | tr -d '#' | head -5); do
+              ms=$(gh api "repos/$REPO/issues/$n" --jq '.milestone.title // empty' 2>/dev/null || true)
+              if [ -n "$ms" ]; then ms_src="ticket #$n"; break; fi
+            done
+          fi
+
+          echo "milestone=$ms"            >> "$GITHUB_OUTPUT"
+          echo "milestone_source=$ms_src" >> "$GITHUB_OUTPUT"
+          echo "Milestone: ${ms:-none found} ${ms_src:+(from $ms_src)}"
+
+      - name: Log results to Notion
+        if: always()
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          # CI Test Runs database (ByteBites Team Hub)
+          NOTION_DB_ID: ${{ secrets.NOTION_TEST_RUNS_DB_ID || '696014b533ed458cb55920a6d8c419e5' }}
+          MILESTONE: ${{ steps.pr.outputs.milestone }}
+          MILESTONE_SOURCE: ${{ steps.pr.outputs.milestone_source }}
+          PY_VERSION: ${{ matrix.python-version }}
+          RUN_NUM: ${{ github.run_number }}
+          TRIGGER: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          ACTOR: ${{ github.actor }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+        run: |
+          python - <<'PY'
+          import ast, json, os, re, sys, urllib.request, urllib.error
+          from collections import Counter, OrderedDict
+          from datetime import datetime, timezone
+
+          E = lambda k: (os.environ.get(k) or "").strip()
+          if not E("NOTION_TOKEN"):
+              print("NOTION_TOKEN not set (fork PR?) - skipping Notion upload.")
+              sys.exit(0)
+
+          MAX = 1900  # Notion caps each rich-text chunk at 2000 chars
+
+          # ---------- Notion block helpers ----------
+          def txt(s, link=None, **ann):
+              s = str(s)
+              parts = [s[i:i + MAX] for i in range(0, len(s), MAX)] or [""]
+              out = []
+              for p in parts[:90]:
+                  t = {"content": p}
+                  if link:
+                      t["link"] = {"url": link}
+                  r = {"type": "text", "text": t}
+                  if ann:
+                      r["annotations"] = ann
+                  out.append(r)
+              return out
+
+          def blk(kind, rich, **extra):
+              return {"object": "block", "type": kind, kind: {"rich_text": rich, **extra}}
+
+          def h2(s): return blk("heading_2", txt(s))
+          def h3(s): return blk("heading_3", txt(s))
+          def para(rich): return blk("paragraph", rich)
+          def bullet(rich, children=None):
+              b = blk("bulleted_list_item", rich)
+              if children:
+                  b["bulleted_list_item"]["children"] = children
+              return b
+          def code(s): return blk("code", txt(str(s)[-6000:]), language="plain text")
+          def field(label, value, **ann):
+              return bullet(txt(f"{label}: ", bold=True) + txt(value, **ann))
+
+          # ---------- Load pytest results ----------
+          report = None
+          try:
+              with open("report.json") as f:
+                  report = json.load(f)
+          except Exception as e:
+              print(f"No usable report.json: {e}")
+
+          tests      = (report or {}).get("tests", [])
+          summary    = (report or {}).get("summary", {})
+          warnings   = (report or {}).get("warnings", [])
+          collectors = [c for c in (report or {}).get("collectors", []) if c.get("outcome") == "failed"]
+          exitcode   = (report or {}).get("exitcode")
+          duration   = round((report or {}).get("duration", 0) or 0, 2)
+
+          if E("JOB_STATUS") == "cancelled":
+              result = "cancelled"
+          elif report is None:
+              result = "failure"
+          elif exitcode == 0:
+              result = "success"
+          elif exitcode == 5:      # pytest: no tests collected
+              result = "skipped"
+          else:
+              result = "failure"
+
+          n = lambda k: int(summary.get(k, 0) or 0)
+          passed, failed, errors = n("passed"), n("failed"), n("error")
+          skipped, xfailed, xpassed = n("skipped"), n("xfailed"), n("xpassed")
+          total = n("total") or len(tests)
+
+          ICON = {"passed": "✅", "failed": "❌", "error": "💥", "skipped": "⏭️",
+                  "xfailed": "⚠️", "xpassed": "❗"}
+
+          def split_id(nodeid):
+              file, _, name = nodeid.partition("::")
+              return file, (name or nodeid)
+
+          def test_secs(t):
+              return sum((t.get(s) or {}).get("duration", 0) or 0 for s in ("setup", "call", "teardown"))
+
+          def failure_text(t):
+              chunks = []
+              for stage in ("setup", "call", "teardown"):
+                  st = t.get(stage) or {}
+                  if st.get("outcome") == "failed" and st.get("longrepr"):
+                      chunks.append(f"[{stage}]\n{st['longrepr']}")
+              return "\n\n".join(chunks)
+
+          def skip_reason(t):
+              for stage in ("setup", "call"):
+                  st = t.get(stage) or {}
+                  lr = st.get("longrepr")
+                  if st.get("outcome") == "skipped" and lr:
+                      if isinstance(lr, str) and lr.startswith("("):
+                          try:
+                              lr = ast.literal_eval(lr)   # "(path, line, 'Skipped: reason')"
+                          except Exception:
+                              pass
+                      if isinstance(lr, (list, tuple)):
+                          lr = lr[-1]
+                      return str(lr).removeprefix("Skipped: ")[-200:]
+              return ""
+
+          by_file = OrderedDict()
+          for t in tests:
+              by_file.setdefault(split_id(t["nodeid"])[0], []).append(t)
+
+          failed_names = [split_id(t["nodeid"])[1] for t in tests if t.get("outcome") in ("failed", "error")]
+
+          # ---------- Run details ----------
+          pr_num   = E("PR_NUMBER")
+          owner    = E("PR_AUTHOR") or E("ACTOR")
+          commit   = E("COMMIT")
+          run_url  = E("RUN_URL")
+          msg_line = E("COMMIT_MSG").splitlines()[0] if E("COMMIT_MSG") else ""
+
+          # GitHub milestone title -> Notion option (M0..M4). "M2", "M2 - Ordering",
+          # "Milestone 2" all map to "M2".
+          ms_raw = E("MILESTONE")
+          m = re.search(r"\bM\s*-?\s*(\d+)\b", ms_raw, re.I) or re.search(r"milestone\s*(\d+)", ms_raw, re.I)
+          milestone = f"M{int(m.group(1))}" if m else ""
+          if milestone:
+              ms_label = milestone + (f" ({ms_raw})" if ms_raw != milestone else "")
+              ms_label += f", from {E('MILESTONE_SOURCE')}" if E("MILESTONE_SOURCE") else ""
+          elif ms_raw:
+              ms_label = f"'{ms_raw}' (doesn't map to M0-M4, left blank in the table)"
+          else:
+              ms_label = "None (no linked ticket with a milestone)"
+
+          blocks = []
+          emoji = {"success": "✅", "failure": "❌", "cancelled": "⛔", "skipped": "⏭️"}[result]
+          blocks.append({"object": "block", "type": "callout", "callout": {
+              "icon": {"type": "emoji", "emoji": emoji},
+              "color": "green_background" if result == "success" else "red_background",
+              "rich_text": txt(f"{result.upper()} - {total} tests ran on Python {E('PY_VERSION')}: "
+                               f"{passed} passed, {failed} failed, {errors} errors, {skipped} skipped, "
+                               f"{len(warnings)} warnings", bold=True)}})
+
+          blocks.append(h2("Run details"))
+          blocks.append(field("PR", f"#{pr_num}" if pr_num else "N/A (no PR for this commit)"))
+          blocks.append(field("Commit", commit, code=True))
+          if msg_line:
+              blocks.append(field("Commit message", msg_line))
+          blocks.append(field("PR / branch owner", owner))
+          blocks.append(field("Branch", E("BRANCH")))
+          blocks.append(field("Pushed by", E("ACTOR")))
+          blocks.append(field("Python", E("PY_VERSION")))
+          blocks.append(field("Milestone", ms_label))
+          blocks.append(bullet(txt("Run: ", bold=True) + txt(run_url, link=run_url)))
+
+          blocks.append(h2("Summary"))
+          blocks.append(para(txt(f"{total} tests ran in {duration}s across {len(by_file)} files.")))
+          for label, val in [("Passed", passed), ("Failed", failed), ("Errors", errors),
+                             ("Skipped", skipped), ("Expected failures (xfail)", xfailed),
+                             ("Unexpected passes (xpass)", xpassed), ("Warnings", len(warnings))]:
+              blocks.append(field(label, val))
+          if E("INSTALL_OUTCOME") not in ("", "success"):
+              blocks.append(para(txt("⚠️ Installing dependencies failed, so tests did not run. "
+                                     "Check the run log.", bold=True)))
+          elif report is None:
+              blocks.append(para(txt("⚠️ pytest did not produce a report. Check the run log.", bold=True)))
+
+          # ---------- Tests grouped by file ----------
+          blocks.append(h2("Tests by file"))
+          if not by_file:
+              blocks.append(para(txt("No tests were collected.")))
+          for file, ts in by_file.items():
+              c = Counter(t.get("outcome") for t in ts)
+              tally = " · ".join(f"{v} {k}" for k, v in c.items())
+              blocks.append(h3(f"📄 {file}  ({tally})"))
+              for t in ts:
+                  out = t.get("outcome", "?")
+                  name = split_id(t["nodeid"])[1]
+                  rich = txt(f"{ICON.get(out, '•')} ") + txt(name, code=True) + \
+                         txt(f"  {out} · {test_secs(t):.2f}s", color="gray")
+                  children = None
+                  if out in ("failed", "error"):
+                      ft = failure_text(t)
+                      children = [code(ft)] if ft else None
+                  elif out == "skipped":
+                      reason = skip_reason(t)
+                      if reason:
+                          rich += txt(f"  - {reason}", italic=True, color="gray")
+                  blocks.append(bullet(rich, children))
+
+          # ---------- Collection errors ----------
+          if collectors:
+              blocks.append(h2(f"Collection errors ({len(collectors)})"))
+              for col in collectors:
+                  blocks.append(bullet(txt(col.get("nodeid") or "(root)", code=True),
+                                       [code(col.get("longrepr", ""))]))
+
+          # ---------- Warnings ----------
+          blocks.append(h2(f"Warnings ({len(warnings)})"))
+          if not warnings:
+              blocks.append(para(txt("No warnings 🎉")))
+          else:
+              grouped = Counter((w.get("category", "Warning"), str(w.get("message", "")).strip(),
+                                 w.get("filename", ""), w.get("lineno", "")) for w in warnings)
+              for (cat, msg, fn, ln), count in grouped.items():
+                  if fn and os.path.isabs(fn):
+                      fn = os.path.relpath(fn)
+                  where = f"  - {fn}:{ln}" if fn else ""
+                  times = f" (x{count})" if count > 1 else ""
+                  blocks.append(bullet(txt(f"{cat}: ", bold=True) + txt(msg[:1500]) +
+                                       txt(where + times, color="gray")))
+
+          # ---------- Notion API ----------
+          def notion(method, path, body):
+              req = urllib.request.Request(
+                  "https://api.notion.com/v1" + path, data=json.dumps(body).encode(), method=method,
+                  headers={"Authorization": f"Bearer {E('NOTION_TOKEN')}",
+                           "Notion-Version": "2022-06-28",
+                           "Content-Type": "application/json"})
+              try:
+                  with urllib.request.urlopen(req) as r:
+                      return json.load(r)
+              except urllib.error.HTTPError as e:
+                  print(f"Notion API error {e.code}: {e.read().decode()}")
+                  raise
+
+          title = f"Backend Tests #{E('RUN_NUM')} · py{E('PY_VERSION')}" + (f" · PR #{pr_num}" if pr_num else "")
+          props = {
+              "Name":         {"title": txt(title)},
+              "Result":       {"select": {"name": result}},
+              "Trigger":      {"select": {"name": E("TRIGGER") or "push"}},
+              "Python":       {"select": {"name": E("PY_VERSION")}},
+              "Branch":       {"rich_text": txt(E("BRANCH"))},
+              "Commit":       {"rich_text": txt(commit)},
+              "Actor":        {"rich_text": txt(owner)},
+              "Run URL":      {"url": run_url},
+              "Date":         {"date": {"start": datetime.now(timezone.utc).isoformat(timespec="seconds")}},
+              "Passed":       {"number": passed + xpassed},
+              "Failed":       {"number": failed + errors},
+              "Skipped":      {"number": skipped + xfailed},
+              "Duration (s)": {"number": duration},
+              "Failed tests": {"rich_text": txt(", ".join(failed_names)[:MAX])},
+          }
+          if milestone:
+              props["Milestone"] = {"select": {"name": milestone}}
+
+          page = notion("POST", "/pages", {"parent": {"database_id": E("NOTION_DB_ID")},
+                                           "properties": props, "children": blocks[:100]})
+          # Notion accepts at most 100 blocks per request; append the rest in batches
+          for i in range(100, len(blocks), 100):
+              notion("PATCH", f"/blocks/{page['id']}/children", {"children": blocks[i:i + 100]})
+
+          print(f"Logged to Notion: {page.get('url')}")
+          PY
