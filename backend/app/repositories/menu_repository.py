@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from backend.app.models.menu_Item_model import MenuItem
+from backend.app.models.menu_item_model import MenuItem
 
 
 # if the menu data is not exist
