@@ -42,7 +42,9 @@ The React frontend (`frontend/src/`) follows a similar separation:
   details, and menu pages.
 - **`components/`:** Reusable UI pieces such as restaurant cards and the
   create and update forms.
+- **`hooks/`:** React logic that utilize React's memory.
 - **`layouts/`:** Shared page layout.
+- **`lib`:** Regular functions that take and return data.
 - **`routes/`:** URL-to-page routing.
 - **`types/`:** TypeScript types that mirror the backend models.
 
