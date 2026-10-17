@@ -161,3 +161,23 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Ran the full test suite (77 passed, including the existing tests) and checked that
   the tests use temporary files and do not modify the real data files.
 - PR: TBD
+
+### Entry 11
+
+- Student(s): Yibing Wang
+- Artifact: frontend/src/pages/LandingView.tsx, frontend/src/App.tsx,
+  frontend/src/layouts/generic_layout/GenericLayout.tsx,
+  frontend/src/pages/DiscoverView.tsx, frontend/src/pages/RestaurantDetailsView.tsx,
+  frontend/src/api/restaurants.ts
+- Label: AI-ASSISTED
+- AI tool: OpenAI Codex
+- Purpose: Add a landing page separating restaurant discovery from the future
+  restaurant-management section, with URL-based navigation.
+- Influence: Codex generated the landing page and routing changes, moved restaurant
+  API calls from CustomerRouter.ts into api/restaurants.ts, and updated imports.
+  The student edited and the scope with simpler text and Home-only header
+  navigation. Management remains a placeholder.
+- Validation: Codex ran the frontend production build successfully and the backend
+  test suite (40 passed at the time). Browser interactions were not verified.
+- PR: 100
+
