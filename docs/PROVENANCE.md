@@ -25,7 +25,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 ### Entry 2
 
 - Student(s): Junho Kim
-- Artifact: backend/app/models/menu_Item_model.py
+- Artifact: backend/app/models/menu_item_model.py
 - Label: AI-ASSISTED
 - AI tool: Claude (Claude Code)
 - Purpose: Understand how to design the menu item Pydantic model for the Add Menu Item user story (#70).
