@@ -80,8 +80,8 @@ The team reviewed the submission materials together and confirmed that everyone 
 
 | Team Member | Assigned Work |
 |---|---|
-| Maison Gulyas | Frontend architecture, restaurant list view (sub-29) |
-| Yibing Wang | Restaurant details view (sub-41), menu details view (sub-48), landing page |
+| Maison Gulyas | Frontend architecture, restaurant list view (sub-29), restaurant search (sub-36)|
+| Yibing Wang | Restaurant details view (sub-41), menu details view (sub-48), landing page, restaurant filter (sub-36)|
 | Junho Kim | Menu management: add and update menu items (epic-28) |
 | Guransh Sandhu | Restaurant creation and update, with React forms |
 
@@ -141,8 +141,9 @@ The team reviewed the submission materials together and confirmed that everyone 
 | October 13, 2026 | Junho Kim | Added `MenuService`, `POST` and `PATCH` menu item routes, and their tests. |
 | October 15, 2026 | Yibing Wang | Implemented the restaurant details feature. |
 | October 15, 2026 | Guransh Sandhu | Added React forms for creating and updating restaurants. |
-| October 16, 2026 | Yibing Wang | Implemented the menu endpoint and frontend menu display; added the landing page and URL navigation. |
+| October 16, 2026 | Yibing Wang | Implemented the menu endpoint and frontend menu display; added the landing page and URL navigation. Implementing restaurant filtering. |
 | October 16, 2026 | Junho Kim | Adapted menu add and update to the `menus.json` structure; restored `DiscoverView` and fixed frontend dependencies. |
+| October 16, 2026 | Maison Gulyas | Implemented restaurant search. |
 
 ---
 
