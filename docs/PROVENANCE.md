@@ -234,3 +234,21 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   build successfully. Filter tests use temporary JSON files. Browser interactions
   were not verified.
 - PR: TBD
+
+### Entry 15
+
+- Student(s): Junho Kim
+- Artifact: README.md, docs/architecture.md, docs/scrum.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Update the project documentation to reflect the Milestone 1 implementation.
+- Influence: The AI read the routes, models and git history and wrote the README sections
+  (current status, frontend setup, endpoint list with request fields and error codes,
+  repository structure), the feature layer mapping and frontend structure in
+  `architecture.md`, and the Milestone 1 meeting notes, progress log, decisions and blockers
+  in `scrum.md`. The student provided the weekly Friday meeting schedule and team member names,
+  and corrected a name spelling.
+- Validation: Checked the endpoint descriptions against `restaurant_routes.py` and
+  `menu_routes.py`, ran the test suite (100 passed). The meeting notes were inferred by the AI
+  from commit dates and were reviewed by the student.
+- PR: 108
