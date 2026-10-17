@@ -20,12 +20,12 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   (Mains, Sides, Drinks, Desserts).
 - Validation: Loaded every item through the `MenuItem` Pydantic model and checked that each
   `restaurant_id` exists in `backend/app/data/restaurants.json`.
-- PR: 108
+- PR: TBD
 
 ### Entry 2
 
 - Student(s): Junho Kim
-- Artifact: backend/app/models/menu_Item_model.py
+- Artifact: backend/app/models/menu_item_model.py
 - Label: AI-ASSISTED
 - AI tool: Claude (Claude Code)
 - Purpose: Understand how to design the menu item Pydantic model for the Add Menu Item user story (#70).
@@ -35,7 +35,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Checked that invalid input (string price, price of 0, empty name, wrong-length id,
   non-boolean `is_available`) is rejected and that all sample data in `menu_items.json` loads
   through the model.
-- PR: 108
+- PR: TBD
 
 ### Entry 3
 
@@ -53,7 +53,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   the code and made the fixes.
 - Validation: Ran `add_menu` and `get_menu` against a temporary JSON file and confirmed the new
   item was saved with a generated id; covered by `backend/tests/test_menu_service.py`.
-- PR: 108
+- PR: TBD
 
 ### Entry 4
 
@@ -68,7 +68,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Confirmed the endpoint returns 201 with a generated id for a valid request and 422
   for a missing field, and that the route is registered in the app; covered by
   `backend/tests/test_menu_routes.py`.
-- PR: 108
+- PR: TBD
 
 ### Entry 5
 
@@ -82,7 +82,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   restaurant test files. The route tests use a small app containing only the menu router.
 - Validation: Ran the full test suite (55 passed, including the existing tests) and checked that
   the tests use temporary files and do not modify the real data files.
-- PR: 108
+- PR: TBD
 
 ### Entry 6
 
@@ -99,7 +99,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Checked that partial updates are accepted and that invalid values (empty name or
   category, zero or negative price, wrong types) are rejected; covered by
   `backend/tests/test_update_menu_item_model.py`.
-- PR: 108
+- PR: TBD
 
 ### Entry 7
 
@@ -113,7 +113,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   works. The student wrote the method.
 - Validation: Ran `update` against a temporary JSON file and confirmed only the matching item
   changed; covered by `backend/tests/test_menu_repository.py`.
-- PR: 108
+- PR: TBD
 
 ### Entry 8
 
@@ -130,7 +130,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Ran the service against a temporary JSON file and confirmed price-only updates,
   unknown items and wrong restaurants behave correctly; covered by
   `backend/tests/test_menu_service.py`.
-- PR: 108
+- PR: TBD
 
 ### Entry 9
 
@@ -145,7 +145,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   the URL, missing imports, duplicate imports).
 - Validation: Confirmed the endpoint returns 200 for a valid update, 404 for an unknown item or
   wrong restaurant, and 422 for an invalid price; covered by `backend/tests/test_menu_routes.py`.
-- PR: 108
+- PR: TBD
 
 ### Entry 10
 
@@ -160,7 +160,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   files, and mapped them to the acceptance criteria of #76.
 - Validation: Ran the full test suite (77 passed, including the existing tests) and checked that
   the tests use temporary files and do not modify the real data files.
-- PR: 108
+- PR: TBD
 
 ### Entry 11
 
@@ -249,6 +249,6 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   in `scrum.md`. The student provided the weekly Friday meeting schedule and team member names,
   and corrected a name spelling.
 - Validation: Checked the endpoint descriptions against `restaurant_routes.py` and
-  `menu_routes.py`, ran the test suite (100 passed), and reviewed the meeting notes, which the AI
-  inferred from commit dates, against what the team discussed.
+  `menu_routes.py`, ran the test suite (100 passed). The meeting notes were inferred by the AI
+  from commit dates and were reviewed by the student.
 - PR: 108
