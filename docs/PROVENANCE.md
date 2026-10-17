@@ -181,3 +181,25 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   test suite (40 passed at the time). Browser interactions were not verified.
 - PR: 100
 
+### Entry 12
+
+- Student(s): Maison Gulyas
+- Artifact: 
+  frontend/* <Used to as to bounce architecture ideas off of for our frontend>
+  frontend/src/hooks/useDebounce.ts,
+  frontend/src/hooks/tests/test_useDebounce.ts,
+  frontend/src/lib/searchRestaurants.ts,
+  frontend/src/lib/tests/test_searchRestaurants.ts,
+  frontend/src/layouts/generic_layout/GenericLayout.tsx,
+  frontend/src/pages/DiscoverView.tsx, 
+- Label: AI-ASSISTED
+- AI tool: Claude
+- Purpose: Assist with writing hooks and the lib as I haven't done that before so wanted guidance. 
+- Influence: 
+  Claude generated code scaffolding which I then changed as needed and asked questions in order to learn. 
+  Furthermore, I used claude to assist with problem solving scalability vs short term issues such as using a simple hook 
+  for searching versus down the road handling searching within API calls or with custom packages such as a custom Trie package 
+  for the searching. 
+- Validation: Claude was not used to test anything, it's major roll for me was finding resources etc. 
+  test suite (40 passed at the time). Browser interactions were not verified.
+- PR: 109
