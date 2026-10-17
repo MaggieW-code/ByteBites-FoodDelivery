@@ -3,7 +3,7 @@ import json
 from pydantic import ValidationError
 from pytest import raises
 
-from backend.app.models.menu_Item_model import CreateMenuItem, MenuItem
+from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
 from backend.app.models.menu_model import Menu
 from backend.app.models.update_menu_item_model import UpdateMenuItem
 from backend.app.repositories.menu_repository import MenuRepository

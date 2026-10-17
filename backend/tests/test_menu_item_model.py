@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from pytest import raises
 
-from backend.app.models.menu_Item_model import CreateMenuItem, MenuItem
+from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
 
 
 def test_create_menu_item_model_successful() -> None:
