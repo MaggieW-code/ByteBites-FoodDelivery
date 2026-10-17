@@ -17,12 +17,17 @@ class RestaurantService:
     def __init__(self, repository: RestaurantRepository):
         self.repository = repository
 
-    def get_restaurants(self) -> list[Restaurant]:
+    def get_restaurants(self, cuisine: str | None = None) -> list[Restaurant]:
         data = self.repository.get_all()
 
-        return [
+        restaurants = [
             Restaurant(**restaurant) for restaurant in data
         ]
+        if cuisine and cuisine.strip():
+            selected_cuisine = cuisine.strip().casefold()
+            return [restaurant for restaurant in restaurants
+                    if restaurant.cuisine.strip().casefold() == selected_cuisine]
+        return restaurants
 
     def get_restaurant_by_id(self, restaurant_id: str) -> Restaurant:
         record = self.repository.get_by_id(restaurant_id)
