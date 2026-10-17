@@ -61,7 +61,9 @@ frontend/
 └── src/
     ├── api/
     ├── components/
+    ├── hooks/
     ├── layouts/
+    ├── lib/
     ├── pages/
     ├── routes/
     └── types/
@@ -100,6 +102,7 @@ From the repository root, with the backend running:
 ```bash
 cd frontend
 npm install
+npm run test
 npm start
 ```
 
