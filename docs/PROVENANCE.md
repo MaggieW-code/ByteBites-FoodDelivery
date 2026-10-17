@@ -214,3 +214,23 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   vs. server-side search or a Trie later); I chose the simple approach for now.
 - Validation: I ran `npm run test` (vitest) and all 13 hook and search tests passed.
 - PR: 109
+
+### Entry 14
+
+- Student(s): Yibing Wang
+- Artifact: backend/app/services/restaurant_service.py,
+  backend/app/routes/restaurant_routes.py, frontend/src/api/restaurants.ts,
+  frontend/src/pages/DiscoverView.tsx, backend/tests/test_restaurant_cuisine_filter.py
+- Label: AI-GENERATED
+- AI tool: OpenAI Codex
+- Purpose: Implement filtering restaurants by cuisine for user story #36.
+- Influence: The student requested cuisine filtering. Codex generated an optional
+  cuisine query parameter, service-layer filtering using repository-loaded data,
+  and a frontend dropdown populated from API results. Matching ignores case and
+  surrounding whitespace; an empty filter returns all restaurants. Codex also
+  generated isolated service and API tests for matching, no matches, and the
+  unfiltered list.
+- Validation: Ran the full pytest suite (111 passed) and the frontend production
+  build successfully. Filter tests use temporary JSON files. Browser interactions
+  were not verified.
+- PR: TBD
