@@ -64,4 +64,97 @@ Milestone 0 implementation and documentation work continued toward the submissio
 
 The team reviewed the submission materials together and confirmed that everyone was satisfied with the document to be submitted.
 
+---
+
+# Milestone 1 — Restaurant Discovery and Menu Management
+
+## October 2, 2026 — Planning Meeting
+
+### Meeting Goals
+
+- Review the requirements for Milestone 1.
+- Split the restaurant discovery, restaurant management, and menu management epics into sub-tickets.
+- Agree on the frontend structure.
+
+### Task Distribution
+
+| Team Member | Assigned Work |
+|---|---|
+| Maison Gulyas | Frontend architecture, restaurant list view (sub-29) |
+| Yibing Wang | Restaurant details view (sub-41), menu details view (sub-48), landing page |
+| Junho Kim | Menu management: add and update menu items (epic-28) |
+| Guransh Sandhu | Restaurant creation and update, with React forms |
+
+### Outcome
+
+- Milestone 1 work was divided into epics, and each sub-ticket had a clear owner.
+- Team members began working on their assigned tickets.
+
+---
+
+## October 9, 2026 — Weekly Meeting
+
+### Meeting Goals
+
+- Review progress on assigned tickets.
+- Discuss blockers and implementation questions.
+
+### Progress Reported
+
+- The `MenuItem` model and `MenuRepository` add method were in place.
+- Restaurant creation and update were implemented on the backend.
+- Frontend architecture work was about to begin.
+
+### Outcome
+
+- Team members continued work on their tickets, aiming to have features ready for the next meeting.
+
+---
+
+## October 16, 2026 — Weekly Meeting
+
+### Meeting Goals
+
+- Review the completed Milestone 1 features.
+- Integrate the feature branches and resolve merge issues.
+
+### Progress Reported
+
+- Frontend architecture, restaurant list, details, and menu views, and the landing page were merged.
+- Menu add and update endpoints were completed with tests.
+- React forms for creating and updating restaurants were completed.
+
+### Outcome
+
+- Menu add and update were adapted to the shared `menus.json` structure.
+- Merge issues in the frontend (`DiscoverView` and dependencies) were fixed.
+
+---
+
+## Progress Log
+
+| Date | Member | Work Completed |
+|---|---|---|
+| October 8, 2026 | Junho Kim | Added the `MenuItem` model and `MenuRepository` with an add method. |
+| October 8, 2026 | Guransh Sandhu | Implemented restaurant creation and updates (`POST`/`PATCH /restaurants`). |
+| October 12, 2026 | Maison Gulyas | Set up the React frontend architecture, layout, routing, and restaurant list view. |
+| October 13, 2026 | Junho Kim | Added `MenuService`, `POST` and `PATCH` menu item routes, and their tests. |
+| October 15, 2026 | Yibing Wang | Implemented the restaurant details feature. |
+| October 15, 2026 | Guransh Sandhu | Added React forms for creating and updating restaurants. |
+| October 16, 2026 | Yibing Wang | Implemented the menu endpoint and frontend menu display; added the landing page and URL navigation. |
+| October 16, 2026 | Junho Kim | Adapted menu add and update to the `menus.json` structure; restored `DiscoverView` and fixed frontend dependencies. |
+
+---
+
+## Key Decisions
+
+- Menus are stored per restaurant in `menus.json` (`restaurant_id`, `currency`, `items`), and menu add and update were adapted to this shared structure.
+- `MenuService` checks that the restaurant exists, using `RestaurantRepository`.
+- Frontend API calls are grouped under `frontend/src/api/`.
+
+## Blockers
+
+- Two features modelled menu data differently. This was resolved by moving menu add and update onto the `menus.json` structure.
+- Merging the branches broke `DiscoverView` and the frontend dependencies. This was fixed by restoring `DiscoverView` from `main` and reinstalling the dependencies.
+
 
