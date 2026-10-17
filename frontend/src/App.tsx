@@ -3,6 +3,8 @@ import { GenericLayout } from "./layouts/generic_layout/GenericLayout";
 import { Discover } from "./pages/DiscoverView";
 import { Landing } from "./pages/LandingView";
 import { RestaurantDetails } from "./pages/RestaurantDetailsView";
+import { CreateRestaurantForm } from "./components/CreateRestaurantForm";
+import { UpdateRestaurantForm } from "./components/UpdateRestaurantForm";
 
 function RestaurantDetailsRoute() {
   const { restaurantId } = useParams();
@@ -18,9 +20,16 @@ export default function App() {
           <Route path="/restaurants" element={<Discover />} />
           <Route path="/restaurants/:restaurantId" element={<RestaurantDetailsRoute />} />
           <Route path="/manage/restaurants" element={
-            <main>
-              <h2>Manage restaurants</h2>
-              <p>Restaurant management is coming soon.</p>
+            <main style={{ maxWidth: "700px", margin: "40px auto", padding: "20px" }}>
+              <h1>Restaurant Management</h1>
+
+              <div style={{ marginBottom: "40px" }}>
+                <CreateRestaurantForm />
+              </div>
+
+              <div>
+                <UpdateRestaurantForm />
+              </div>
             </main>
           } />
           <Route path="*" element={
