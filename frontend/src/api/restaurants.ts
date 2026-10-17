@@ -14,8 +14,11 @@ export interface UpdateRestaurantRequest {
   address?: string;
 }
 
-export const fetchRestaurants = async (): Promise<Restaurant[]> => {
-  const response = await fetch(`${API_BASE_URL}/restaurants`);
+export const fetchRestaurants = async (cuisine?: string): Promise<Restaurant[]> => {
+  const params = new URLSearchParams();
+  if (cuisine?.trim()) params.set("cuisine", cuisine.trim());
+  const query = params.size ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_BASE_URL}/restaurants${query}`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch restaurants");
