@@ -181,8 +181,41 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   test suite (40 passed at the time). Browser interactions were not verified.
 - PR: 100
 
-
 ### Entry 12
+
+- Student(s): Maison Gulyas
+- Artifact: frontend/src/App.tsx, frontend/src/index.tsx, frontend/src/routes/CustomerRouter.ts,
+  frontend/src/layouts/generic_layout/GenericLayout.tsx, frontend/src/pages/DiscoverView.tsx,
+  frontend/src/components/RestaurantCard.tsx, frontend/src/types/, frontend/README.md
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: I set up the frontend architecture (pages, layouts, components, routes, types) for the
+  Restaurant List View subtask (#29) so the team has a consistent structure for future UI work.
+- Influence: Claude generated the initial folder structure and file scaffolding, and I used it to
+  discuss architecture options. I reworked the structure, wrote the page, layout and component
+  content, and used Claude to check my understanding of the design choices.
+- Validation: I ran the frontend locally and confirmed the restaurant list loaded from the backend
+  through the Discover page.
+- PR: 91
+
+### Entry 13
+
+- Student(s): Maison Gulyas
+- Artifact: frontend/src/hooks/useDebounce.ts, frontend/src/hooks/tests/test_useDebounce.test.ts,
+  frontend/src/lib/searchRestaurants.ts, frontend/src/lib/tests/test_searchRestaurants.test.ts,
+  frontend/src/pages/DiscoverView.tsx, frontend/package.json
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: I wanted to learn how to write a custom React hook and a search utility for the Search
+  and Filter Restaurants user story (#36), since I hadn't written either before.
+- Influence: Claude provided scaffolding for the hook and search function and explained how
+  debouncing works. I changed the code as needed and used Claude to check my understanding.
+  Claude also helped me weigh short-term vs. scalable options (a simple client-side search now
+  vs. server-side search or a Trie later); I chose the simple approach for now.
+- Validation: I ran `npm run test` (vitest) and all 13 hook and search tests passed.
+- PR: 109
+
+### Entry 14
 
 - Student(s): Yibing Wang
 - Artifact: backend/app/services/restaurant_service.py,
