@@ -56,7 +56,7 @@ Read `backend/app/routes/README.md`, then each route file and `main.py`. For eve
   downloads.
 - **Claude Code** (`.claude/`): skills' `allowed-tools` grant only what they need;
   `settings.json` permissions aren't broader than needed; no hooks that run downloaded code.
-  `settings.local.json` is ignored by git.
+  No personal `settings.local.json` is committed.
 - **GitHub Actions** (`.github/workflows/`): least-privilege `permissions:`; no secrets
   echoed to logs; no `pull_request_target` checking out PR code; third-party actions
   pinned to a version (ideally a commit SHA).

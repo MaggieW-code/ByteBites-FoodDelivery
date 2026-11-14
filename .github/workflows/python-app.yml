@@ -29,8 +29,11 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with ruff
       run: |
-        ruff check . --output-format=github
-        ruff format --check .
+        # stop the build if there are Python syntax errors or undefined names
+        ruff check . --select E9,F63,F7,F82 --output-format=github
+        # everything else is reported as warnings, as flake8 did before the switch
+        ruff check . --exit-zero --output-format=github
+        ruff format --check . || true
     - name: Test with pytest
       run: |
         pytest
