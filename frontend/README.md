@@ -1,71 +1,56 @@
-# Frontend Architecture
+# frontend
 
-## Stack
-- React
-- Parcel Build Tool (Typescript, Code Splitting)
-- Typscript & JSX
-- npm
-- Node.js
+## Purpose
 
-## Warning!
-**Don't** touch `package-lock.json`, let npm manage this file. 
+The ByteBites web client: a React + TypeScript single-page app that shows restaurants and
+menus and calls the FastAPI backend for all data.
 
-## Typescript & JSX -> .tsx
-- Typescript, like Javascript, but with typesafety, used for Network and API calls.
-- JSX, the visual side of the file that signals to the Typescript compiler that HTML style tags may be present within the file. 
+## Contents
 
-## When to use .tsx and .ts
-Use `.tsx` when developing a feature that has a UI. If something can be offloaded and does not need a UI, such as HTTPendpoint requests then use `.ts` as this is pure logic.
+| Path | Role |
+|---|---|
+| `index.html` | Page shell; loads `src/index.tsx` |
+| `src/` | All app code (see `src/README.md`) |
+| `package.json` | Scripts and dependencies. Let npm manage `package-lock.json`; never edit it by hand |
+| `tsconfig.json` | TypeScript settings (`strict`) |
+| `dist/` | Build output from Parcel (git-ignored) |
 
-## Naming Convetions
-- PascalCase: React components and files. Also Typescript types and interfaces
-- camelCase: Functions and variables
+Stack: React 19, React Router 7, TypeScript, Parcel (dev server and bundler), Vitest.
 
-## Type Validation
-- Exists only during compiling. Doesn't check user inputs during runtime, so type validation falls back to the servicelayer
+## How it connects
 
-# Vertical Stack 
-|Directory|Responsibility|
-|:---|---:|
-|``layouts/``| General layouts of pages, examples being a dedicated page layout for customers vs admin |
-|``pages/``| The specific UI elements for a given display & the page specific logic |
-|``components/``| Reusable UI pieces |
-|``routes/``| Handles going from page to page |
-|``types/``| Definitions for what specific data should look like |
+- Talks to the backend at `http://127.0.0.1:8000` through `src/api/`. The backend allows
+  this origin through CORS in `main.py` (port 1234).
+- `src/types/` mirrors the backend Pydantic models by hand, so the two change together.
+- Run (backend running separately from the repo root):
+  - `npm install`, then `npm start` → http://localhost:1234
+  - `npm test` runs Vitest; `npm run build` builds to `dist/`
 
-## Restaurant details (#41)
+## Conventions
 
-Run the backend on `http://127.0.0.1:8000` and the frontend with `npm start`.
-The landing page retrieves persisted restaurants from `GET /restaurants`.
-Selecting **View details** requests `GET /restaurants/{restaurant_id}` and shows
-all fields returned by the API. **Back to restaurants** returns to the list.
-
-Manual browser verification:
-- Load the page and select different restaurants; confirm the name, ID, cuisine,
-  rating, address, and status match the selected restaurant's API response.
-- Throttle requests in browser developer tools and confirm the loading message.
-- Intercept a details request with a 404 response and confirm the unavailable
-  restaurant message and working back button.
-- Block the details request or return a 500 response and confirm an error is
-  displayed and the back button still works.
-
-The browser checks above are manual; automated frontend interaction tests are
-not configured in this repository.
-
-## Restaurant menus
-
-Menus extend the existing Discover → Restaurant Details flow. Select **View
-details** on a restaurant; the details page now loads its menu below the existing
-restaurant fields. The existing layout, discovery list, and back button remain.
-The menu section shows descriptions, prices/currency, and item availability.
-Loading, empty, and failure states are provided, with a retry action on failure.
-
-Manual checks with the API running on port 8000 and frontend on port 1234:
-- Select different restaurants and verify their details and associated menus.
-- Return to the list using the existing back button and select another restaurant.
-- Throttle the network to verify loading; block a menu request and retry it.
-- Return an empty menu or 404 to verify empty and missing-restaurant states.
-- Verify an unavailable item is labeled rather than hidden.
-
-Automated frontend interaction tests are not configured; browser checks above
-must be performed manually.
+- Layering: `pages → hooks → api`. Only `src/api/` calls `fetch`; components only render.
+- `.tsx` for files with JSX, `.ts` for everything else.
+- Naming: PascalCase for components and their files (`RestaurantCard.tsx`) and for types;
+  camelCase for functions, variables, hooks (`useDebounce.ts`), and non-component files
+  (`restaurants.ts`).
+- Tests sit next to the code in a `tests/` folder, named `<file>.test.ts`.
+- TypeScript types disappear at runtime. The backend is the real validation; the frontend
+  only shapes and displays data.
+- Manual test steps for a feature go in its PR description, not here.
+- Not yet true:
+  - TypeScript is not installed, so nothing type-checks the code; Parcel and Vitest strip
+    types without checking them (F29).
+  - No linter, and CI never runs frontend tests, builds, or checks, so the architecture
+    rules here are not enforced by any tool (F34).
+  - The backend URL is hardcoded in several files, and `routes/CustomerRouter.ts` calls
+    `fetch` outside `api/` (F15).
+  - Pages fetch data in `useEffect` themselves instead of through hooks, and `api/` builds
+    user-facing error text.
+  - Unused code: `RestaurantCard`, `CustomerRouter.ts`, the `express` dependencies (F28).
+  - Some names break the conventions above (`layouts/generic_layout/`, `test_*.test.ts`).
+- Proposed:
+  - Feature-first folders: `app/`, `features/<feature>/` (each page in its own folder with
+    its components and hooks), and `shared/`.
+  - Layout routes with role guards and a central `paths` helper.
+  - Frontend types generated from the backend's OpenAPI schema.
+  - Localization: `t()` catalogues, backend error codes, and `Intl` formatting in one place.

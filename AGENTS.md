@@ -75,6 +75,13 @@ Run these before every summary and report the results:
 - Read the nearest README.md before editing.
 - Stay scoped to the task.
 - Ask before adding dependencies, top-level directories, or new patterns.
+- When proposing a fix, lead with the industry-standard, professional solution, then give
+  the developer options: the simplest version that works (KISS) and any lighter
+  alternative, each with its trade-offs. Recommend one; the developer decides.
+- Label every proposed change as a **fix** or a **proposal**. A fix has objective evidence:
+  a failing test or broken behaviour, a written rule (assignment spec, this file), dead or
+  duplicated code, or a measurable cost. Anything else (a library, structure, or style
+  choice) is a proposal and needs team agreement before its PR merges.
 - Propose changes to AGENTS.md instead of silently breaking a rule.
 - The agent never changes git history or remotes: no commit, branch, switch, merge, rebase,
   reset, stash, tag, delete, push, or opening/merging PRs. Read-only commands (`git fetch`,
