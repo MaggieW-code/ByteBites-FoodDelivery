@@ -268,4 +268,4 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   Replaced flake8 with ruff (same checks, line length kept at 127).
 - Validation: I reviewed and approved each README one at a time and checked them against
   the code. Backend tests (111) and frontend tests (13) pass; no app code changed.
-- PR:
+- PR: #125 
