@@ -68,6 +68,8 @@ frontend/
     ├── routes/
     └── types/
 docs/
+├── README.md
+├── agent_usage.md
 ├── architecture.md
 ├── scrum.md
 ├── team-agreement.md

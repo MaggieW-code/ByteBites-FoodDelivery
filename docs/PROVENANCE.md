@@ -252,3 +252,20 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   `menu_routes.py`, ran the test suite (100 passed). The meeting notes were inferred by the AI
   from commit dates and were reviewed by the student.
 - PR: 108
+
+### Entry 16
+
+- Student(s): Maison Gulyas
+- Artifact: `AGENTS.md`, `CLAUDE.md`, `.claude/skills/` (`review-pr`, `lint`, `study`,
+  `fix-finding`, `audit-security`, `audit-hooks`), `docs/agent_usage.md`, `.gitignore`, `.githooks/pre-commit`, `ruff.toml`,
+  `requirements.txt`, `.github/workflows/python-app.yml`, `frontend/README.md`, and a
+  `README.md` in every major backend, frontend, and docs folder
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Set up an agentic workflow and document every folder before commencing work on the repo.
+- Influence: I set the rules, structure, and decisions; the AI drafted the files. The AI
+  also reviewed each folder and reported issues, which I logged for later fix PRs.
+  Replaced flake8 with ruff (same checks, line length kept at 127).
+- Validation: I reviewed and approved each README one at a time and checked them against
+  the code. Backend tests (111) and frontend tests (13) pass; no app code changed.
+- PR: #125 
