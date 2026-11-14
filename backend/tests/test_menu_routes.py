@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
-
+from decimal import Decimal
 from backend.app.routes import menu_routes
 
 # Small app with only the menu router, so these tests don't depend on main.py
@@ -47,7 +47,7 @@ def test_add_menu_returns_201(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     assert body["restaurant_id"] == "rest_001"
     assert body["name"] == "Pho"
     assert body["category"] == "Noodles"
-    assert body["price"] == 14.99
+    assert body["price"] == "14.99"
     assert body["is_available"] is True
 
     saved = json.loads(data_path.read_text(encoding="utf-8"))
@@ -159,7 +159,7 @@ def test_update_menu_returns_200(tmp_path: Path, monkeypatch: MonkeyPatch) -> No
 
     assert body["id"] == "menu_002"
     assert body["restaurant_id"] == "rest_001"
-    assert body["price"] == 3.99
+    assert body["price"] == "3.99"
     assert body["name"] == "French Fries"
 
     saved = json.loads(data_path.read_text(encoding="utf-8"))

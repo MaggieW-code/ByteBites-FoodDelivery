@@ -2,9 +2,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Path as PathParameter
 
-from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
-from backend.app.models.menu_model import Menu
-from backend.app.models.update_menu_item_model import UpdateMenuItem
+from backend.app.models.menu_model import CreateMenuItem, Menu, MenuItem, UpdateMenuItem
 from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.menu_service import (

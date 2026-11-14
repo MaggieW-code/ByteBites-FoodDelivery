@@ -1,8 +1,7 @@
 import uuid
+from decimal import Decimal
 
-from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
-from backend.app.models.menu_model import Menu
-from backend.app.models.update_menu_item_model import UpdateMenuItem
+from backend.app.models.menu_model import CreateMenuItem, Menu, MenuItem, UpdateMenuItem
 from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 
@@ -49,7 +48,7 @@ class MenuService:
         item = MenuItem(**{
             "category": "uncategorized",
             **record,
-            "price": float(record["price"]),
+            "price": Decimal(str(record["price"])),
             "restaurant_id": restaurant_id,
         })
         updated = item.model_copy(update=data.model_dump(exclude_none=True))

@@ -1,8 +1,8 @@
 import json
 
 from pytest import raises
-
-from backend.app.models.menu_item_model import MenuItem
+from decimal import Decimal
+from backend.app.models.menu_model import MenuItem
 from backend.app.repositories.menu_repository import (
     MenuDataError,
     MenuDataMalformedError,
@@ -13,7 +13,7 @@ from backend.app.repositories.menu_repository import (
 
 def _entry(item: MenuItem) -> dict:
     """How an item is stored inside a restaurant's 'items' list."""
-    return item.model_dump(exclude={"restaurant_id"})
+    return item.model_dump(mode="json",exclude={"restaurant_id"})
 
 
 def _menus_with_two_items() -> list[dict]:
@@ -27,7 +27,7 @@ def _menus_with_two_items() -> list[dict]:
                     "name": "Cheese Burger",
                     "category": "Mains",
                     "description": "",
-                    "price": 15.99,
+                    "price": "15.99",
                     "is_available": True,
                 },
                 {
@@ -35,7 +35,7 @@ def _menus_with_two_items() -> list[dict]:
                     "name": "French Fries",
                     "category": "Sides",
                     "description": "",
-                    "price": 4.99,
+                    "price": "4.99",
                     "is_available": True,
                 },
             ],
