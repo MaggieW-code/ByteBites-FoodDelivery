@@ -256,7 +256,8 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 ### Entry 16
 
 - Student(s): Maison Gulyas
-- Artifact: `AGENTS.md`, `CLAUDE.md`, `.githooks/pre-commit`, `ruff.toml`,
+- Artifact: `AGENTS.md`, `CLAUDE.md`, `.claude/skills/` (`review-pr`, `lint`, `study`,
+  `fix-finding`, `audit-security`, `audit-hooks`), `docs/agent_usage.md`, `.gitignore`, `.githooks/pre-commit`, `ruff.toml`,
   `requirements.txt`, `.github/workflows/python-app.yml`, `frontend/README.md`, and a
   `README.md` in every major backend, frontend, and docs folder
 - Label: AI-GENERATED

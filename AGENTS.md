@@ -63,7 +63,8 @@ Code rules:
 
 ## CHECKS
 
-Run these before every summary and report the results:
+Run these before every summary and report the results. Paths use `.venv/bin/` (Linux and
+macOS); on Windows use `.venv\Scripts\` instead.
 - Lint: `.venv/bin/ruff check .` and `.venv/bin/ruff format --check .` (config: `ruff.toml`).
   The repo has existing violations; report new ones in the files the change touches and
   don't fix unrelated files unless asked.
@@ -72,7 +73,11 @@ Run these before every summary and report the results:
 
 ## AGENT RULES
 
-- Read the nearest README.md before editing.
+- Load context README-first, to save tokens. Read in this order and stop as soon as you know
+  enough: (1) this file, (2) the README.md of each folder the task touches, (3) only the
+  source files the task needs. Don't scan whole directories or read `docs/architecture.md`
+  unless the READMEs don't answer the question. If a README is wrong or missing, say so and
+  update it (principle 7).
 - Stay scoped to the task.
 - Ask before adding dependencies, top-level directories, or new patterns.
 - When proposing a fix, lead with the industry-standard, professional solution, then give
@@ -86,7 +91,10 @@ Run these before every summary and report the results:
 - The agent never changes git history or remotes: no commit, branch, switch, merge, rebase,
   reset, stash, tag, delete, push, or opening/merging PRs. Read-only commands (`git fetch`,
   `status`, `log`, `diff`, `rev-list`, `merge-base`, `range-diff`, `gh pr view`,
-  `gh pr list`) are fine.
+  `gh pr list`, `gh pr diff`, `gh pr checks`) are fine.
+- Skills in `.claude/skills/` hold step-by-step procedures: `review-pr`, `lint`, `study`,
+  `fix-finding`, `audit-security`, `audit-hooks`. They follow the rules in this file;
+  change a rule here, not in a skill. How to use agents here: `docs/agent_usage.md`.
 - Every git and GitHub step in the flows below is run by the developer. See COMMAND HANDOFF.
 - Agents are never contributors. Commit messages, squash messages, and PR descriptions the
   agent drafts contain no `Co-Authored-By` trailers, no "Generated with" lines, and no agent
