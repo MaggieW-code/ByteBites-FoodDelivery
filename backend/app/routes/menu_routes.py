@@ -35,9 +35,12 @@ def restaurant_menu(
         raise HTTPException(status_code=404, detail=str(error)) from error
 
 
-@router.post("/restaurants/{restaurant_id}/menu", response_model=MenuItem, status_code=201)
+@router.post("/restaurants/{restaurant_id}/menu", response_model=MenuItem, status_code=201,responses={404: {"description": "Restaurant not found"}})
 def add_menu(restaurant_id: str, data: CreateMenuItem) -> MenuItem:
-    return menu_service.add_menu(restaurant_id, data)
+    try:
+        return menu_service.add_menu(restaurant_id, data)
+    except MenuRestaurantNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
 
 
 @router.patch("/restaurants/{restaurant_id}/menu/{menu_item_id}", response_model=MenuItem)

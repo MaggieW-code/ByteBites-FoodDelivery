@@ -28,6 +28,8 @@ class MenuService:
         return Menu(**menu)
 
     def add_menu(self, restaurant_id: str, data: CreateMenuItem) -> MenuItem:
+        if self.restaurant_repository.get_by_id(restaurant_id) is None:
+            raise MenuRestaurantNotFoundError(f"Restaurant '{restaurant_id}' not found")
         item = MenuItem(
             id=uuid.uuid4().hex[:8],
             restaurant_id=restaurant_id,

@@ -16,6 +16,11 @@ def _point_to(monkeypatch: MonkeyPatch, data_path: Path) -> None:
     monkeypatch.setattr(
         menu_routes.menu_service.menu_repository, "data_path", data_path
     )
+    restaurant_path = data_path.parent / "restaurants.json"
+    restaurant_path.write_text(json.dumps([{"id": "rest_001"}]), encoding="utf-8")
+    monkeypatch.setattr(
+        menu_routes.menu_service.restaurant_repository, "data_path", restaurant_path
+    )
 
 
 def _stored(body: dict) -> dict:
@@ -118,6 +123,26 @@ def test_add_menu_user_cannot_set_id(
     assert response.status_code == 201
     assert response.json()["id"] != "hacked01"
 
+def test_add_menu_unknown_restaurant_returns_404(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    data_path = tmp_path / "menus.json"
+    data_path.write_text("[]", encoding="utf-8")
+    _point_to(monkeypatch, data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
+            "/restaurants/rest_999/menu",
+            json={
+                "name": "Pho",
+                "category": "Noodles",
+                "price": 14.99,
+                "is_available": True,
+            },
+        )
+
+    assert response.status_code == 404
+    assert json.loads(data_path.read_text(encoding="utf-8")) == []
 
 def _write_update_test_menus(data_path: Path) -> list[dict]:
     _menus = [

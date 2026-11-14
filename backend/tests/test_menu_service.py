@@ -122,11 +122,18 @@ def test_add_menu_service_creates_different_ids(tmp_path) -> None:
 def test_add_menu_service_invalid_restaurant_id(tmp_path) -> None:
     service, repository, _ = _make_service(tmp_path, [])
 
-    with raises(ValidationError):
+    with raises(MenuRestaurantNotFoundError):
         service.add_menu("rest_1", _new_item_data())
 
     assert repository.get_all() == []
 
+def test_add_menu_service_unknown_restaurant(tmp_path) -> None:
+    service, repository, _ = _make_service(tmp_path, [])
+
+    with raises(MenuRestaurantNotFoundError):
+        service.add_menu("rest_999", _new_item_data())
+
+    assert repository.get_all() == []
 
 def test_get_menu_service(tmp_path) -> None:
     service, _, _ = _make_service(tmp_path, _two_item_menus())
