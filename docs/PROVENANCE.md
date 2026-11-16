@@ -269,3 +269,16 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: I reviewed and approved each README one at a time and checked them against
   the code. Backend tests (111) and frontend tests (13) pass; no app code changed.
 - PR: #125 
+
+### Entry 17
+
+- Student(s): Maison Gulyas
+- Artifact: `frontend/src/pages/DiscoverView.tsx`, `frontend/src/pages/tests/DiscoverView.test.tsx` (new),
+  `frontend/src/pages/README.md`, `backend/tests/test_restaurant_routes.py`, `backend/tests/README.md`
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Fix the inverted empty-state message on Discover and add tests. Update the backend test to use temporary data. Likewise, found the backend bug which was touching actual data and adapted that with Claude. 
+- Influence: I found the bug earlier and had Claude implement the fix with new tests.
+- Validation: I checked the tests by making the fix un-true and re-running them as well as visually validating the change. 
+- PR:
+
