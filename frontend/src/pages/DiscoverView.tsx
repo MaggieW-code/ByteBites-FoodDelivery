@@ -61,7 +61,7 @@ export function Discover() {
       {loading && <p role="status">Loading restaurants…</p>}
       {error && <p role="alert">{error}</p>}
       
-      {!isReady && restaurants.length === 0 && (
+      {isReady && restaurants.length === 0 && (
         <p>{cuisine ? "No restaurants match this cuisine." : "No restaurants available."}</p>
       )}
       {isReady && restaurants.length > 0 && visible.length === 0 && (
