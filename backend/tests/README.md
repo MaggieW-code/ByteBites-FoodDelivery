@@ -40,11 +40,9 @@ in one file.
 - Replace the whole service in route tests, not a repository's internal `data_path`.
 - Fixtures shared by more than one file belong in a `conftest.py`, not copied between files.
 - Not yet true:
-  - Two tests in `test_restaurant_routes.py` read the real `restaurants.json` and fail when
-    pytest runs from another folder (F23).
   - Route tests use three different ways to swap in test data, and fixtures are copied
     between files (F24).
   - `test_config.py` sets `os.environ` directly (F25).
 - Proposed (first, before other fixes): a shared `conftest.py` with `tmp_path` data
-  fixtures and one `client` fixture fixes F23–F25. Later, F1's `Depends` changes only that
+  fixtures and one `client` fixture fixes F24–F25. Later, F1's `Depends` changes only that
   fixture to use `app.dependency_overrides`.
