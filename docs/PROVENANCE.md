@@ -252,3 +252,61 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   `menu_routes.py`, ran the test suite (100 passed). The meeting notes were inferred by the AI
   from commit dates and were reviewed by the student.
 - PR: 108
+
+### Entry 16
+
+- Student(s): Junho Kim
+- Artifact: backend/app/routes/menu_routes.py, backend/tests/test_menu_routes.py
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Return 422 for a badly formatted restaurant ID when adding a menu item (#123).
+- Influence: The AI added the same 8-character `PathParameter` rule used by the GET menu route
+  to the POST route, and wrote route tests for 201 (existing restaurant) and 422
+  (`rest_01`, `rest_0001`, `r`, with nothing saved). The student reviewed the change and
+  explained back how FastAPI rejects the request before the service runs.
+- Validation: Ran the full pytest suite (118 passed). Confirmed the new 422 tests fail when
+  the route change is removed.
+- PR: TBD
+
+### Entry 17
+
+- Student(s): Junho Kim
+- Artifact: backend/app/repositories/menu_repository.py, backend/app/services/menu_service.py
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: Add menu item lookup by ID for Cart and Checkout (#124).
+- Influence: The AI explained the route → service → repository structure, gave a worked
+  example of a nested-loop search on sample data, and reviewed the student's code. The student
+  wrote `find_item_by_id` and `get_menu_item`, fixing issues found in review (missing
+  `get_all()` call, `return None` inside the loop, wrong repository method, missing return).
+  After checking the Cart (#117) and Checkout (#118) requirements, the student decided to also
+  check that the item's restaurant exists and is active; the AI provided the structure for that
+  check and the new `MenuRestaurantInactiveError`, which the student typed in.
+- Validation: Called `get_menu_item` on every item in `menus.json` and an unknown ID; ran the
+  full pytest suite.
+- PR: TBD
+
+### Entry 18
+
+- Student(s): Junho Kim
+- Artifact: backend/tests/test_menu_service.py
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Test the menu item lookup for #124.
+- Influence: The AI wrote four service tests: item found (price, availability, restaurant ID),
+  unknown item, inactive restaurant, and missing restaurant.
+- Validation: Ran the full pytest suite (122 passed). Confirmed the inactive-restaurant test
+  fails when the `is_active` check is removed.
+- PR: TBD
+
+### Entry 19
+
+- Student(s): Junho Kim
+- Artifact: README.md, backend/README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Document the Restaurant & Menu Integration epic (#116).
+- Influence: The AI added the 404/422 rules for adding a menu item, the decimal price format,
+  and the `get_menu_item` lookup and its errors.
+- Validation: Checked the descriptions against `menu_routes.py` and `menu_service.py`.
+- PR: TBD
