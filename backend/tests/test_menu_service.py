@@ -8,6 +8,7 @@ from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.menu_service import (
     MenuItemNotFoundError,
+    MenuRestaurantInactiveError,
     MenuRestaurantNotFoundError,
     MenuService,
 )
@@ -156,6 +157,44 @@ def test_get_menu_service_restaurant_without_menu_is_empty(tmp_path) -> None:
 
     assert menu.restaurant_id == "rest_002"
     assert menu.items == []
+
+
+def test_get_menu_item_service_returns_item(tmp_path) -> None:
+    service, _, _ = _make_service(tmp_path, _two_item_menus())
+
+    item = service.get_menu_item("menu_002")
+
+    assert isinstance(item, MenuItem)
+    assert item.price == Decimal("4.99")
+    assert item.is_available is True
+    assert item.restaurant_id == "rest_001"
+
+
+def test_get_menu_item_service_unknown_item(tmp_path) -> None:
+    service, _, _ = _make_service(tmp_path, _two_item_menus())
+
+    with raises(MenuItemNotFoundError):
+        service.get_menu_item("menu_999")
+
+
+def test_get_menu_item_service_inactive_restaurant(tmp_path) -> None:
+    service, _, _ = _make_service(tmp_path, _two_item_menus())
+    restaurant_file = tmp_path / "restaurants.json"
+    restaurants = json.loads(restaurant_file.read_text(encoding="utf-8"))
+    restaurants[0]["is_active"] = False
+    restaurant_file.write_text(json.dumps(restaurants), encoding="utf-8")
+
+    with raises(MenuRestaurantInactiveError):
+        service.get_menu_item("menu_002")
+
+
+def test_get_menu_item_service_missing_restaurant(tmp_path) -> None:
+    menus = _two_item_menus()
+    menus[0]["restaurant_id"] = "rest_009"
+    service, _, _ = _make_service(tmp_path, menus)
+
+    with raises(MenuRestaurantNotFoundError):
+        service.get_menu_item("menu_002")
 
 
 def test_get_menu_service_unknown_restaurant(tmp_path) -> None:
