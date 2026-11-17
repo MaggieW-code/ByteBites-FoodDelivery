@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
@@ -143,6 +144,52 @@ def test_add_menu_unknown_restaurant_returns_404(
 
     assert response.status_code == 404
     assert json.loads(data_path.read_text(encoding="utf-8")) == []
+
+
+def test_add_menu_existing_restaurant_returns_201(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    data_path = tmp_path / "menus.json"
+    data_path.write_text("[]", encoding="utf-8")
+    _point_to(monkeypatch, data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
+            "/restaurants/rest_001/menu",
+            json={
+                "name": "Pho",
+                "category": "Noodles",
+                "price": 14.99,
+                "is_available": True,
+            },
+        )
+
+    assert response.status_code == 201
+    assert response.json()["restaurant_id"] == "rest_001"
+
+
+@pytest.mark.parametrize("bad_id", ["rest_01", "rest_0001", "r"])
+def test_add_menu_bad_restaurant_id_length_returns_422(
+    tmp_path: Path, monkeypatch: MonkeyPatch, bad_id: str
+) -> None:
+    data_path = tmp_path / "menus.json"
+    data_path.write_text("[]", encoding="utf-8")
+    _point_to(monkeypatch, data_path)
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
+            f"/restaurants/{bad_id}/menu",
+            json={
+                "name": "Pho",
+                "category": "Noodles",
+                "price": 14.99,
+                "is_available": True,
+            },
+        )
+
+    assert response.status_code == 422
+    assert json.loads(data_path.read_text(encoding="utf-8")) == []
+
 
 def _write_update_test_menus(data_path: Path) -> list[dict]:
     _menus = [

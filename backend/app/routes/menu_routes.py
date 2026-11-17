@@ -35,8 +35,17 @@ def restaurant_menu(
         raise HTTPException(status_code=404, detail=str(error)) from error
 
 
-@router.post("/restaurants/{restaurant_id}/menu", response_model=MenuItem, status_code=201,responses={404: {"description": "Restaurant not found"}})
-def add_menu(restaurant_id: str, data: CreateMenuItem) -> MenuItem:
+@router.post(
+    "/restaurants/{restaurant_id}/menu",
+    response_model=MenuItem,
+    status_code=201,
+    responses={404: {"description": "Restaurant not found"}},
+)
+def add_menu(
+    data: CreateMenuItem,
+    restaurant_id: str = PathParameter(..., min_length=8, max_length=8,
+                                       description="Restaurant ID, for example rest_001"),
+) -> MenuItem:
     try:
         return menu_service.add_menu(restaurant_id, data)
     except MenuRestaurantNotFoundError as error:
