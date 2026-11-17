@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from backend.app.models.menu_item_model import MenuItem
+from backend.app.models.menu_model import MenuItem
 
 
 # if the menu data is not exist
@@ -60,9 +60,17 @@ class MenuRepository:
                 return item
         return None
 
+    def find_item_by_id(self, item_id: str) -> dict | None:
+        menus = self.get_all()
+        for menu in menus:
+            for item in menu["items"]:
+                if item["id"] == item_id:
+                    return {**item, "restaurant_id": menu["restaurant_id"]}
+        return None
+
     def add(self, item: MenuItem) -> None:
         menus = self.get_all()
-        entry = item.model_dump(exclude={"restaurant_id"})
+        entry = item.model_dump(mode="json",exclude={"restaurant_id"})
 
         for menu in menus:
             if menu["restaurant_id"] == item.restaurant_id:
@@ -77,7 +85,7 @@ class MenuRepository:
 
     def update(self, item: MenuItem) -> None:
         menus = self.get_all()
-        entry = item.model_dump(exclude={"restaurant_id"})
+        entry = item.model_dump(mode="json",exclude={"restaurant_id"})
 
         for menu in menus:
             if menu["restaurant_id"] == item.restaurant_id:

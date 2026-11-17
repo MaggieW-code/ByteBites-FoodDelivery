@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from pytest import raises
-
-from backend.app.models.update_menu_item_model import UpdateMenuItem
+from decimal import Decimal
+from backend.app.models.menu_model import UpdateMenuItem
 
 
 def test_update_menu_item_model_all_fields() -> None:
@@ -14,13 +14,13 @@ def test_update_menu_item_model_all_fields() -> None:
 
     assert item.name == "Pho"
     assert item.category == "Noodles"
-    assert item.price == 14.99
+    assert item.price == Decimal("14.99")
     assert item.is_available is False
 
 def test_update_menu_item_model_only_price() -> None:
     item = UpdateMenuItem(price=3.99)
 
-    assert item.price == 3.99
+    assert item.price == Decimal("3.99")
     assert item.name is None
     assert item.category is None
     assert item.is_available is None

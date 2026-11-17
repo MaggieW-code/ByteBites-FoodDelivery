@@ -1,8 +1,7 @@
 import uuid
+from decimal import Decimal
 
-from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
-from backend.app.models.menu_model import Menu
-from backend.app.models.update_menu_item_model import UpdateMenuItem
+from backend.app.models.menu_model import CreateMenuItem, Menu, MenuItem, UpdateMenuItem
 from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 
@@ -12,6 +11,10 @@ class MenuRestaurantNotFoundError(Exception):
 
 
 class MenuItemNotFoundError(Exception):
+    pass
+
+
+class MenuRestaurantInactiveError(Exception):
     pass
 
 
@@ -28,7 +31,25 @@ class MenuService:
             return Menu(restaurant_id=restaurant_id, currency="CAD", items=[])
         return Menu(**menu)
 
+    def get_menu_item(self, menu_item_id: str) -> MenuItem:
+        record = self.menu_repository.find_item_by_id(menu_item_id)
+        if record is None:
+            raise MenuItemNotFoundError(f"Menu item '{menu_item_id}' not found")
+        restaurant = self.restaurant_repository.get_by_id(record["restaurant_id"])
+        if restaurant is None:
+            raise MenuRestaurantNotFoundError(f"Restaurant '{record['restaurant_id']}' not found")
+        if not restaurant["is_active"]:
+            raise MenuRestaurantInactiveError(f"Restaurant '{record['restaurant_id']}' not active")
+        item = MenuItem(**{
+            "category": "uncategorized",
+            **record,
+            "price": Decimal(str(record["price"])),
+        })
+        return item
+
     def add_menu(self, restaurant_id: str, data: CreateMenuItem) -> MenuItem:
+        if self.restaurant_repository.get_by_id(restaurant_id) is None:
+            raise MenuRestaurantNotFoundError(f"Restaurant '{restaurant_id}' not found")
         item = MenuItem(
             id=uuid.uuid4().hex[:8],
             restaurant_id=restaurant_id,
@@ -49,7 +70,7 @@ class MenuService:
         item = MenuItem(**{
             "category": "uncategorized",
             **record,
-            "price": float(record["price"]),
+            "price": Decimal(str(record["price"])),
             "restaurant_id": restaurant_id,
         })
         updated = item.model_copy(update=data.model_dump(exclude_none=True))

@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from pytest import raises
-
-from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
+from decimal import Decimal
+from backend.app.models.menu_model import CreateMenuItem, MenuItem
 
 
 def test_create_menu_item_model_successful() -> None:
@@ -14,7 +14,7 @@ def test_create_menu_item_model_successful() -> None:
 
     assert item.name == "Pho"
     assert item.category == "Noodles"
-    assert item.price == 14.99
+    assert item.price == Decimal("14.99")
     assert item.is_available is True
 
 def test_menu_item_model_successful() -> None:
@@ -31,7 +31,7 @@ def test_menu_item_model_successful() -> None:
     assert item.restaurant_id == "rest_001"
     assert item.name == "Pho"
     assert item.category == "Noodles"
-    assert item.price == 14.99
+    assert item.price == Decimal("14.99")
     assert item.is_available is True
 
 def test_menu_item_model_missing_id() -> None:

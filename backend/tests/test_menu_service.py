@@ -2,21 +2,20 @@ import json
 
 from pydantic import ValidationError
 from pytest import raises
-
-from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
-from backend.app.models.menu_model import Menu
-from backend.app.models.update_menu_item_model import UpdateMenuItem
+from decimal import Decimal
+from backend.app.models.menu_model import CreateMenuItem, Menu, MenuItem, UpdateMenuItem
 from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.menu_service import (
     MenuItemNotFoundError,
+    MenuRestaurantInactiveError,
     MenuRestaurantNotFoundError,
     MenuService,
 )
 
 
 def _entry(item: MenuItem) -> dict:
-    return item.model_dump(exclude={"restaurant_id"})
+    return item.model_dump(mode="json",exclude={"restaurant_id"})
 
 
 def _make_service(tmp_path, menus: list[dict]) -> tuple[MenuService, MenuRepository, list[dict]]:
@@ -64,7 +63,7 @@ def _two_item_menus() -> list[dict]:
                     "name": "Cheese Burger",
                     "category": "Mains",
                     "description": "",
-                    "price": 15.99,
+                    "price": "15.99",
                     "is_available": True,
                 },
                 {
@@ -72,7 +71,7 @@ def _two_item_menus() -> list[dict]:
                     "name": "French Fries",
                     "category": "Sides",
                     "description": "",
-                    "price": 4.99,
+                    "price": "4.99",
                     "is_available": True,
                 },
             ],
@@ -99,7 +98,7 @@ def test_add_menu_service(tmp_path) -> None:
     assert item.restaurant_id == "rest_001"
     assert item.name == "Pho"
     assert item.category == "Noodles"
-    assert item.price == 14.99
+    assert item.price == Decimal("14.99")
     assert item.is_available is True
 
     saved = repository.get_all()
@@ -124,11 +123,18 @@ def test_add_menu_service_creates_different_ids(tmp_path) -> None:
 def test_add_menu_service_invalid_restaurant_id(tmp_path) -> None:
     service, repository, _ = _make_service(tmp_path, [])
 
-    with raises(ValidationError):
+    with raises(MenuRestaurantNotFoundError):
         service.add_menu("rest_1", _new_item_data())
 
     assert repository.get_all() == []
 
+def test_add_menu_service_unknown_restaurant(tmp_path) -> None:
+    service, repository, _ = _make_service(tmp_path, [])
+
+    with raises(MenuRestaurantNotFoundError):
+        service.add_menu("rest_999", _new_item_data())
+
+    assert repository.get_all() == []
 
 def test_get_menu_service(tmp_path) -> None:
     service, _, _ = _make_service(tmp_path, _two_item_menus())
@@ -153,6 +159,44 @@ def test_get_menu_service_restaurant_without_menu_is_empty(tmp_path) -> None:
     assert menu.items == []
 
 
+def test_get_menu_item_service_returns_item(tmp_path) -> None:
+    service, _, _ = _make_service(tmp_path, _two_item_menus())
+
+    item = service.get_menu_item("menu_002")
+
+    assert isinstance(item, MenuItem)
+    assert item.price == Decimal("4.99")
+    assert item.is_available is True
+    assert item.restaurant_id == "rest_001"
+
+
+def test_get_menu_item_service_unknown_item(tmp_path) -> None:
+    service, _, _ = _make_service(tmp_path, _two_item_menus())
+
+    with raises(MenuItemNotFoundError):
+        service.get_menu_item("menu_999")
+
+
+def test_get_menu_item_service_inactive_restaurant(tmp_path) -> None:
+    service, _, _ = _make_service(tmp_path, _two_item_menus())
+    restaurant_file = tmp_path / "restaurants.json"
+    restaurants = json.loads(restaurant_file.read_text(encoding="utf-8"))
+    restaurants[0]["is_active"] = False
+    restaurant_file.write_text(json.dumps(restaurants), encoding="utf-8")
+
+    with raises(MenuRestaurantInactiveError):
+        service.get_menu_item("menu_002")
+
+
+def test_get_menu_item_service_missing_restaurant(tmp_path) -> None:
+    menus = _two_item_menus()
+    menus[0]["restaurant_id"] = "rest_009"
+    service, _, _ = _make_service(tmp_path, menus)
+
+    with raises(MenuRestaurantNotFoundError):
+        service.get_menu_item("menu_002")
+
+
 def test_get_menu_service_unknown_restaurant(tmp_path) -> None:
     service, _, _ = _make_service(tmp_path, _two_item_menus())
 
@@ -168,7 +212,7 @@ def test_update_menu_service_only_price(tmp_path) -> None:
     assert isinstance(updated, MenuItem)
     assert updated.id == "menu_002"
     assert updated.restaurant_id == "rest_001"
-    assert updated.price == 3.99
+    assert updated.price == Decimal("3.99")
     assert updated.name == "French Fries"
     assert updated.category == "Sides"
     assert updated.is_available is True
@@ -193,7 +237,7 @@ def test_update_menu_service_all_fields(tmp_path) -> None:
 
     assert updated.name == "Curly Fries"
     assert updated.category == "Snacks"
-    assert updated.price == 5.49
+    assert updated.price == Decimal("5.49")
     assert updated.is_available is False
     assert updated.id == "menu_002"
     assert updated.restaurant_id == "rest_001"
@@ -235,3 +279,12 @@ def test_update_menu_service_shows_in_get_menu(tmp_path) -> None:
 
     assert menu.items[1].id == "menu_002"
     assert float(menu.items[1].price) == 3.99
+
+def test_saved_price_loads_back_as_exact_decimal(tmp_path) -> None:
+    service, repository, _ = _make_service(tmp_path, [])
+
+    item = service.add_menu("rest_001", CreateMenuItem(
+        name="Pho", category="Noodles", price=14.99, is_available=True))
+
+    loaded = repository.find_item("rest_001", item.id)
+    assert Decimal(loaded["price"]) == Decimal("14.99")
