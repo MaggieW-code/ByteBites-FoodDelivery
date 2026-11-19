@@ -1,10 +1,11 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi import Path as PathParameter
 from fastapi.responses import JSONResponse
 
+from backend.app.cart_auth import get_authenticated_customer_id
 from backend.app.models.cart_model import AddCartItemRequest, CartResponse, UpdateCartItemRequest
 from backend.app.repositories.cart_repository import CartRepository
 from backend.app.repositories.menu_repository import MenuRepository
@@ -24,17 +25,6 @@ cart_service = CartService(
     CartRepository(data_directory / "carts.json"),
     MenuRepository(data_directory / "menus.json"),
 )
-
-
-def get_authenticated_customer_id(request: Request) -> str:
-    """Read the customer ID set by authentication middleware after verification."""
-    customer_id = getattr(request.state, "authenticated_customer_id", None)
-    if not isinstance(customer_id, str) or not customer_id.strip():
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Customer authentication required",
-        )
-    return customer_id
 
 
 def get_cart_service() -> CartService:

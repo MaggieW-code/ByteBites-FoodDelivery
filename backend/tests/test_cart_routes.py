@@ -3,9 +3,10 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app.routes.cart_routes import get_authenticated_customer_id, get_cart_service
+from backend.app.cart_auth import AuthenticatedAccount, get_authenticated_account
 from backend.app.repositories.cart_repository import CartRepository
 from backend.app.repositories.menu_repository import MenuRepository
+from backend.app.routes.cart_routes import get_cart_service
 from backend.app.services.cart_service import CartService, CartValidationError
 from main import app
 
@@ -35,7 +36,8 @@ def cart_api(tmp_path, monkeypatch):
 
 @pytest.fixture
 def authenticated_api(cart_api, monkeypatch):
-    monkeypatch.setitem(app.dependency_overrides, get_authenticated_customer_id, lambda: "alice")
+    account = AuthenticatedAccount(id="alice", role="customer", is_active=True)
+    monkeypatch.setitem(app.dependency_overrides, get_authenticated_account, lambda: account)
     return cart_api
 
 
@@ -105,7 +107,11 @@ def test_cart_routes_require_authenticated_customer(cart_api, method, url, body)
 def test_get_cart_is_scoped_to_authenticated_customer(cart_api, monkeypatch):
     client, _ = cart_api
     customer = "alice"
-    monkeypatch.setitem(app.dependency_overrides, get_authenticated_customer_id, lambda: customer)
+    monkeypatch.setitem(
+        app.dependency_overrides,
+        get_authenticated_account,
+        lambda: AuthenticatedAccount(id=customer, role="customer", is_active=True),
+    )
     alice_cart = client.post(
         "/cart/items?restaurant_id=rest_001", json={"menu_item_id": "item_001", "quantity": 1}
     ).json()
@@ -118,8 +124,49 @@ def test_get_cart_is_scoped_to_authenticated_customer(cart_api, monkeypatch):
     assert response.json()["items"] == []
     assert client.delete("/cart/items/item_001").status_code == 404
 
+    response = client.post(
+        "/cart/items",
+        params={"restaurant_id": "rest_001", "customer_id": "alice"},
+        json={"menu_item_id": "item_001", "quantity": 5, "customer_id": "alice"},
+    )
+    assert response.status_code == 200
+    assert response.json()["customer_id"] == "bob"
+
     customer = "alice"
     assert client.get("/cart").json() == alice_cart
+
+
+@pytest.mark.parametrize(
+    ("account", "expected_status"),
+    [
+        (AuthenticatedAccount(id="alice", role="customer", is_active=True), 200),
+        (AuthenticatedAccount(id="alice", role="customer", is_active=False), 403),
+        (AuthenticatedAccount(id="alice", role="admin", is_active=True), 403),
+    ],
+)
+def test_cart_authorizes_account_from_trusted_request_state(cart_api, account, expected_status):
+    _, repository = cart_api
+
+    async def with_authenticated_account(scope, receive, send):
+        if scope["type"] == "http":
+            scope.setdefault("state", {})["authenticated_account"] = account
+        await app(scope, receive, send)
+
+    with TestClient(with_authenticated_account) as client:
+        response = client.post("/cart")
+
+    assert response.status_code == expected_status
+    if expected_status == 200:
+        assert response.json()["customer_id"] == account.id
+    else:
+        assert repository.get_all() == []
+
+
+def test_unverified_bearer_credential_cannot_open_cart(cart_api):
+    client, repository = cart_api
+    response = client.get("/cart", headers={"Authorization": "Bearer unverified"})
+    assert response.status_code == 401
+    assert repository.get_all() == []
 
 
 @pytest.mark.parametrize(("method", "url", "body"), [
