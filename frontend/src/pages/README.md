@@ -32,9 +32,8 @@ The management page (`/manage/restaurants`) and 404 are inline JSX in `App.tsx`.
   with none stays one file.
 - Pages render; data loading lives in hooks.
 - Pages read their own URL params with `useParams`.
+- Page tests live in `tests/<file>.test.tsx` and mock `api/` with `vi.mock`.
 - Not yet true:
-  - `DiscoverView` shows "No restaurants available." while loading and on error, and never
-    when a filter returns nothing (F35).
   - Files are `*View.tsx` and exports drop the suffix (`Discover`), so names don't match.
   - Each page fetches in its own `useEffect` (F31); `DiscoverView` builds the cuisine
     options itself.
