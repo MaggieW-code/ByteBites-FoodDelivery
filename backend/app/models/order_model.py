@@ -10,7 +10,7 @@ class OrderItem(BaseModel):
     item_id: str = Field(min_length=1)
     name: str = Field(min_length=1)
     quantity: int = Field(strict=True, gt=0)
-    unit_price: Decimal = Field(gt=0)
+    unit_price: Decimal = Field(ge=0)
     line_total: Decimal = Field(ge=0)
 
     @model_validator(mode="after")

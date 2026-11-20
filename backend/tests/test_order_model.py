@@ -1,4 +1,3 @@
-
 from decimal import Decimal
 
 import pytest
@@ -117,3 +116,15 @@ def test_missing_customer_id():
             items=[make_item()],
             total=Decimal("25.00"),
         )
+
+def test_zero_price_item_is_valid():
+    item = OrderItem(
+        item_id="item_free",
+        name="Free Sample",
+        quantity=2,
+        unit_price=Decimal("0.00"),
+        line_total=Decimal("0.00"),
+    )
+
+    assert item.unit_price == Decimal("0.00")
+    assert item.line_total == Decimal("0.00")
