@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routes.auth_routes import router as auth_router
 from backend.app.routes.health import router as health_router
 from backend.app.routes.menu_routes import router as menu_router
+from backend.app.routes.order_routes import router as order_router
 from backend.app.routes.restaurant_routes import router as restaurant_router
 from backend.app.validation_errors import request_validation_error_handler
 
@@ -30,3 +31,4 @@ app.include_router(health_router)
 app.include_router(restaurant_router)
 app.include_router(menu_router)
 app.include_router(auth_router)
+app.include_router(order_router)
