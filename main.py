@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routes.health import router as health_router
 from backend.app.routes.restaurant_routes import router as restaurant_router
 from backend.app.routes.menu_routes import router as menu_router
+from backend.app.routes.order_routes import router as order_router
 
 app = FastAPI(
     title="Food Delivery API", 
@@ -27,3 +28,4 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(restaurant_router)
 app.include_router(menu_router)
+app.include_router(order_router)
