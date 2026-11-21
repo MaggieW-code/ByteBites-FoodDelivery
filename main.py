@@ -2,9 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.middleware.cors import CORSMiddleware
+from backend.app.routes.cart_routes import handle_cart_service_error, router as cart_router
 from backend.app.routes.health import router as health_router
 from backend.app.routes.restaurant_routes import router as restaurant_router
 from backend.app.routes.menu_routes import router as menu_router
+from backend.app.services.cart_service import CartServiceError
 
 app = FastAPI(
     title="Food Delivery API", 
@@ -20,10 +22,12 @@ app.add_middleware(
         "http://127.0.0.1:1234",
     ],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "PATCH"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Content-Type"],
 )
 
 app.include_router(health_router)
 app.include_router(restaurant_router)
 app.include_router(menu_router)
+app.include_router(cart_router)
+app.add_exception_handler(CartServiceError, handle_cart_service_error)
