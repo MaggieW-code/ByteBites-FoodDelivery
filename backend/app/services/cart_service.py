@@ -7,8 +7,9 @@ from uuid import uuid4
 from pydantic import TypeAdapter, ValidationError
 
 from backend.app.models.cart_model import Cart, CartItem, CartResponse, Money
+from backend.app.models.menu_model import MenuItem
 from backend.app.repositories.cart_repository import CartDataError, CartRepository
-from backend.app.repositories.menu_repository import MenuRepository
+from backend.app.services.menu_service import MenuReadError, MenuRestaurantNotFoundError, MenuService
 
 
 class CartServiceError(Exception):
@@ -43,9 +44,9 @@ class CartService:
     _lock = Lock()
     _price = TypeAdapter(Money)
 
-    def __init__(self, cart_repository: CartRepository, menu_repository: MenuRepository):
+    def __init__(self, cart_repository: CartRepository, menu_service: MenuService):
         self.cart_repository = cart_repository
-        self.menu_repository = menu_repository
+        self.menu_service = menu_service
 
     def get_or_create_cart(self, customer_id: str) -> CartResponse:
         with self._operation():
@@ -78,7 +79,7 @@ class CartService:
                 raise CartRestaurantMismatchError("All cart items must be from the same restaurant")
 
             menu_items = self._menu_items(restaurant_id)
-            if self._menu_item(menu_items, menu_item_id).get("is_available") is not True:
+            if self._menu_item(menu_items, menu_item_id).is_available is False:
                 raise CartItemUnavailableError(f"Menu item '{menu_item_id}' is unavailable")
 
             cart.restaurant_id = restaurant_id
@@ -164,22 +165,24 @@ class CartService:
                 return index
         raise CartItemNotFoundError(f"Item '{menu_item_id}' is not in the cart")
 
-    def _menu_items(self, restaurant_id: str) -> dict[str, dict]:
+    def _menu_items(self, restaurant_id: str) -> dict[str, MenuItem]:
         try:
-            menu = self.menu_repository.get_by_restaurant_id(restaurant_id)
-            return {item["id"]: item for item in menu["items"]} if menu is not None else {}
-        except (OSError, ValueError, KeyError, TypeError) as error:
+            menu = self.menu_service.get_menu(restaurant_id)
+        except MenuRestaurantNotFoundError:
+            return {}
+        except MenuReadError as error:
             raise CartStorageError("Unable to read restaurant menu data") from error
+        return {item.id: item for item in menu.items}
 
     @staticmethod
-    def _menu_item(menu_items: dict[str, dict], menu_item_id: str) -> dict:
+    def _menu_item(menu_items: dict[str, MenuItem], menu_item_id: str) -> MenuItem:
         try:
             return menu_items[menu_item_id]
         except KeyError as error:
             raise CartMenuItemNotFoundError(f"Menu item '{menu_item_id}' was not found") from error
 
     def _response(
-        self, cart: Cart, menu_items: dict[str, dict] | None = None
+        self, cart: Cart, menu_items: dict[str, MenuItem] | None = None
     ) -> CartResponse:
         subtotal = Decimal("0.00")
         if cart.items:
@@ -191,8 +194,8 @@ class CartService:
             for item in cart.items:
                 menu_item = self._menu_item(menu_items, item.menu_item_id)
                 try:
-                    price = self._price.validate_python(menu_item["price"])
-                except (KeyError, ValidationError) as error:
+                    price = self._price.validate_python(menu_item.price)
+                except ValidationError as error:
                     raise CartStorageError(
                         f"Invalid menu price for item '{item.menu_item_id}'"
                     ) from error

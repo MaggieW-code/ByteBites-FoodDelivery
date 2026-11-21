@@ -7,6 +7,7 @@ import pytest
 from backend.app.models.cart_model import CartStatus
 from backend.app.repositories.cart_repository import CartRepository
 from backend.app.repositories.menu_repository import MenuRepository
+from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.cart_service import (
     CartItemNotFoundError,
     CartItemUnavailableError,
@@ -16,25 +17,32 @@ from backend.app.services.cart_service import (
     CartStorageError,
     CartValidationError,
 )
+from backend.app.services.menu_service import MenuService
 
 
 @pytest.fixture
 def service(tmp_path):
+    restaurant_path = tmp_path / "restaurants.json"
+    restaurant_path.write_text(
+        json.dumps([{"id": "rest_001"}, {"id": "rest_002"}]), encoding="utf-8"
+    )
     menu_path = tmp_path / "menus.json"
     menu_path.write_text(
         json.dumps([
             {
                 "restaurant_id": "rest_001",
+                "currency": "CAD",
                 "items": [
-                    {"id": "item_001", "price": "0.10", "is_available": True},
-                    {"id": "item_002", "price": 2.35, "is_available": True},
-                    {"id": "item_003", "price": "1.00", "is_available": False},
+                    {"id": "item_001", "name": "item_001", "description": "", "price": "0.10", "is_available": True},
+                    {"id": "item_002", "name": "item_002", "description": "", "price": 2.35, "is_available": True},
+                    {"id": "item_003", "name": "item_003", "description": "", "price": "1.00", "is_available": False},
                 ],
             },
             {
                 "restaurant_id": "rest_002",
+                "currency": "CAD",
                 "items": [
-                    {"id": "item_004", "price": "4.25", "is_available": True}
+                    {"id": "item_004", "name": "item_004", "description": "", "price": "4.25", "is_available": True}
                 ],
             },
         ]),
@@ -43,7 +51,7 @@ def service(tmp_path):
 
     return CartService(
         CartRepository(tmp_path / "carts.json"),
-        MenuRepository(menu_path),
+        MenuService(MenuRepository(menu_path), RestaurantRepository(restaurant_path)),
     )
 
 
@@ -81,15 +89,15 @@ def test_add_update_and_persist_cart(service):
 
     reopened = CartService(
         CartRepository(service.cart_repository.data_path),
-        service.menu_repository,
+        service.menu_service,
     )
     assert reopened.get_cart("customer") == updated
 
 
-def test_totals_use_current_menu_prices(service):
+def test_totals_use_current_menu_prices(service, tmp_path):
     cart = service.add_item("customer", "rest_001", "item_001", 3)
 
-    menu_path = service.menu_repository.data_path
+    menu_path = tmp_path / "menus.json"
     menus = json.loads(menu_path.read_text(encoding="utf-8"))
     menus[0]["items"][0]["price"] = "0.20"
     menu_path.write_text(json.dumps(menus), encoding="utf-8")
@@ -121,8 +129,8 @@ def test_remove_and_clear_cart(service):
     assert service.clear_cart("customer") == cleared
 
 
-def test_empty_cart_without_menu_data(service):
-    service.menu_repository.data_path.unlink()
+def test_empty_cart_without_menu_data(service, tmp_path):
+    (tmp_path / "menus.json").unlink()
 
     cart = service.clear_cart("customer")
 
@@ -176,10 +184,10 @@ def test_reject_invalid_menu_items_and_restaurants(service):
     assert service.get_cart("customer") == initial
 
 
-def test_invalid_backend_price_preserves_cart(service):
+def test_invalid_backend_price_preserves_cart(service, tmp_path):
     initial = service.add_item("customer", "rest_001", "item_001", 1)
 
-    menu_path = service.menu_repository.data_path
+    menu_path = tmp_path / "menus.json"
     menus = json.loads(menu_path.read_text(encoding="utf-8"))
     menus[0]["items"][1]["price"] = "-1.00"
     menu_path.write_text(json.dumps(menus), encoding="utf-8")
@@ -190,10 +198,10 @@ def test_invalid_backend_price_preserves_cart(service):
     assert service.get_cart("customer") == initial
 
 
-def test_failed_update_preserves_stored_cart(service):
+def test_failed_update_preserves_stored_cart(service, tmp_path):
     initial = service.add_item("customer", "rest_001", "item_001", 2)
 
-    menu_path = service.menu_repository.data_path
+    menu_path = tmp_path / "menus.json"
     menus = json.loads(menu_path.read_text(encoding="utf-8"))
     menus[0]["items"][0]["price"] = "-1.00"
     menu_path.write_text(json.dumps(menus), encoding="utf-8")

@@ -6,29 +6,39 @@ from fastapi.testclient import TestClient
 from backend.app.cart_auth import AuthenticatedAccount, get_authenticated_account
 from backend.app.repositories.cart_repository import CartRepository
 from backend.app.repositories.menu_repository import MenuRepository
+from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.routes.cart_routes import get_cart_service
 from backend.app.services.cart_service import CartService, CartValidationError
+from backend.app.services.menu_service import MenuService
 from main import app
 
 
 @pytest.fixture
 def cart_api(tmp_path, monkeypatch):
+    restaurant_path = tmp_path / "restaurants.json"
+    restaurant_path.write_text(
+        json.dumps([{"id": "rest_001"}, {"id": "rest_002"}]), encoding="utf-8"
+    )
     menu_path = tmp_path / "menus.json"
     menu_path.write_text(json.dumps([
         {
             "restaurant_id": "rest_001",
+            "currency": "CAD",
             "items": [
-                {"id": "item_001", "price": "2.50", "is_available": True},
-                {"id": "item_002", "price": "3.00", "is_available": False},
+                {"id": "item_001", "name": "item_001", "description": "", "price": "2.50", "is_available": True},
+                {"id": "item_002", "name": "item_002", "description": "", "price": "3.00", "is_available": False},
             ],
         },
         {
             "restaurant_id": "rest_002",
-            "items": [{"id": "item_003", "price": "4.00", "is_available": True}],
+            "currency": "CAD",
+            "items": [{"id": "item_003", "name": "item_003", "description": "", "price": "4.00", "is_available": True}],
         },
     ]), encoding="utf-8")
     repository = CartRepository(tmp_path / "carts.json")
-    service = CartService(repository, MenuRepository(menu_path))
+    service = CartService(
+        repository, MenuService(MenuRepository(menu_path), RestaurantRepository(restaurant_path))
+    )
     monkeypatch.setitem(app.dependency_overrides, get_cart_service, lambda: service)
     with TestClient(app) as client:
         yield client, repository
@@ -190,6 +200,11 @@ def test_missing_items_and_conflicts(authenticated_api):
 
     response = client.post(
         "/cart/items?restaurant_id=rest_001", json={"menu_item_id": "unknown_", "quantity": 1}
+    )
+    assert response.status_code == 404
+
+    response = client.post(
+        "/cart/items?restaurant_id=rest_999", json={"menu_item_id": "item_001", "quantity": 1}
     )
     assert response.status_code == 404
 
