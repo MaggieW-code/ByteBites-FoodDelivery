@@ -295,4 +295,4 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   did most of the refactor; I reviewed and adjusted the changes.
 - Validation: Ran the full backend suite before and after the refactor: 111 passed both times, so
   no tests were lost.
-- PR: #...
+- PR: #146
