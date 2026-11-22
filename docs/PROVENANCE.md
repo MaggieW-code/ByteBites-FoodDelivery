@@ -282,3 +282,17 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: I checked the tests by making the fix un-true and re-running them as well as visually validating the change. 
 - PR: #129 
 
+### Entry 18
+
+- Student(s): Maison Gulyas
+- Artifact: `conftest.py`, `test_menu_routes.py`, `test_restaurant_management.py`, `test_restaurant_routes.py`, `test_menu.py`, `test_restaurant_details.py`,`test_restaurant_cuisine_filter.py`, `test_config.py`, `test_health_routes.py`, `README.md`
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Each test module built its own data and paths, which made tests brittle and let them
+  drift out of date. Move shared test data and clients into `conftest.py` fixtures so every test
+  uses one source of truth.
+- Influence: I learned the shared-fixture pattern, reviewed our tests, and decided it fit. Claude
+  did most of the refactor; I reviewed and adjusted the changes.
+- Validation: Ran the full backend suite before and after the refactor: 111 passed both times, so
+  no tests were lost.
+- PR: #...
