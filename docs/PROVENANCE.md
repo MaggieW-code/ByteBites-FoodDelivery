@@ -307,3 +307,18 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Influence: Models and aliases. 
 - Validation: Had tests written, broke models and fixed them, then finally updated models. 
 - PR: #147
+
+### Entry 20
+
+- Student(s): Maison Gulyas
+- Artifact: `json_list_store.py`, `account_repository.py`,
+  `session_repository.py`, `backend/tests/auth/conftest.py`,
+  `backend/tests/auth/test_account_repository.py`, `backend/tests/auth/test_session_repository.py`,
+  `backend/tests/test_json_list_store.py`, `README.md`, `backend/tests/README.md`,
+  `backend/tests/auth/README.md`
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: Assistance instantiating the authentication Repository layer.
+- Influence: My agent updated README's and tests, I gave it the architecture I wanted it to follow and what I needed done. The major assist was on the `architecture change` with `json_list_store.py` where an issue with the current data storage system was found. By using `atomic writes` we can safely update files. Essentially a new copy is written and then swapped with the old copy. Upon success the new copy is the now current copy, otherwise the old copy remains the current.  
+- Validation: Ran tests, confirmed logic. All tests passed.
+- PR: TBD
