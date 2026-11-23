@@ -34,3 +34,6 @@ frontend/dist/
 !.env.example
 *.pem
 *.key
+
+# Session Tokens
+backend/app/data/sessions.json

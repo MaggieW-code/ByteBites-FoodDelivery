@@ -13,6 +13,7 @@ business logic and no file access.
 | `health.py` | `GET /health` | none | none |
 | `restaurant_routes.py` | `GET /restaurants?cuisine=`, `GET /restaurants/{restaurant_id}`, `POST /restaurants` (201), `PATCH /restaurants/{restaurant_id}` | `RestaurantService` | `RestaurantNotFoundError` → 404 |
 | `menu_routes.py` | `GET /restaurants/{restaurant_id}/menu`, `POST /restaurants/{restaurant_id}/menu` (201), `PATCH /restaurants/{restaurant_id}/menu/{menu_item_id}` | `MenuService` | `MenuRestaurantNotFoundError` → 404, `MenuItemNotFoundError` → 404 |
+| `auth_routes.py` | `POST /auth/sign-in`, `GET /auth/me`, `POST /auth/sign-out` (204, also for unknown tokens) | `AuthService` | `InvalidCredentialsError` → 401 with `WWW-Authenticate: Bearer`, `AccountDeactivatedError` → 403. Token errors come from `dependencies/auth.py` |
 
 Each file exposes a `router` that `main.py` registers with `app.include_router`.
 
@@ -21,10 +22,14 @@ Each file exposes a `router` that `main.py` registers with `app.include_router`.
 - `main.py` (repo root) registers every router. A new feature's router is not reachable
   until it is added there.
 - Routes call `services/` only, never `repositories/`.
+- `auth_routes.py` receives its service with `Depends(get_auth_service)` from `dependencies/`,
+  which builds it from `config.py` paths. Routes never construct services or repositories.
+  Protected routes declare `get_current_account` or `require_role(...)` from the same place.
 - Request bodies and responses are typed with `models/`, so FastAPI rejects bad input with a
   422 before the route runs and builds `/docs` from the same models.
 - Tests reach the routes through `TestClient(app)` and swap in a service built on `tmp_path`
-  files with `monkeypatch.setattr(<routes module>, "<feature>_service", ...)`.
+  files: `monkeypatch.setitem(app.dependency_overrides, get_auth_service, ...)` for auth, and
+  `monkeypatch.setattr(<routes module>, "<feature>_service", ...)` for the older routes.
 - `frontend/src/api/` calls these endpoints. Changing a path, status code, or response model
   changes the frontend contract.
 
@@ -39,7 +44,8 @@ Each file exposes a `router` that `main.py` registers with `app.include_router`.
 - Validate path parameters with `Path(...)` (IDs are exactly 8 characters) on every route
   that takes them, not only the `GET` routes.
 - Not yet true:
-  - Routes build their own repositories and know where `data/` is (F1, F2).
+  - Restaurant and menu routes build their own repositories and know where `data/` is
+    (F1, F2). `auth_routes.py` shows the target: `Depends` on a provider in `dependencies/`.
     `restaurant_routes.py` uses a path relative to the working directory.
   - `PATCH /restaurants/{id}` catches `ValueError` and checks for `None` (F17).
   - Only the `GET` detail and menu routes validate `restaurant_id`. `menu_item_id` is
