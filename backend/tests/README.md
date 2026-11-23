@@ -18,15 +18,18 @@ in one file.
 | Routes (HTTP) | `test_restaurant_routes.py`, `test_restaurant_management.py`, `test_menu_routes.py`, `test_health_routes.py` |
 | One user story across layers | `test_restaurant_details.py`, `test_restaurant_cuisine_filter.py`, `test_menu.py` |
 | Config | `test_config.py` |
+| Shared fixtures | `conftest.py` |
 
 ## How it connects
 
 - `pytest.ini` at the repo root sets `pythonpath = .`, so tests import `backend.app...` and
   `main`. Run from the repo root: `.venv/bin/pytest backend/tests`.
-- Each test writes its own JSON to pytest's `tmp_path` and builds repositories on it.
-- Route tests use `fastapi.testclient.TestClient` on `main.app` (or a small app with one
-  router) and replace the route module's service with
-  `monkeypatch.setattr(<feature>_routes, "<feature>_service", service)`.
+- `conftest.py` holds the shared fixtures; pytest loads it automatically. The chain is
+  `<feature>_records` → `<feature>s_file` (in `tmp_path`) → `<feature>_repository` →
+  `<feature>_service` → `client`.
+- `client` points both routers at this test's services with `monkeypatch.setattr` and returns
+  one `TestClient` on `main.app` that is shared for the whole session (`session_client`). The
+  client holds no data; every test still gets fresh files.
 - CI runs this suite on PRs into `main`.
 
 ## Conventions
@@ -38,11 +41,9 @@ in one file.
   `monkeypatch.setenv`, and module attributes are swapped with `monkeypatch.setattr`. Never
   assign `os.environ` or module globals directly.
 - Replace the whole service in route tests, not a repository's internal `data_path`.
-- Fixtures shared by more than one file belong in a `conftest.py`, not copied between files.
-- Not yet true:
-  - Route tests use three different ways to swap in test data, and fixtures are copied
-    between files (F24).
-  - `test_config.py` sets `os.environ` directly (F25).
-- Proposed (first, before other fixes): a shared `conftest.py` with `tmp_path` data
-  fixtures and one `client` fixture fixes F24–F25. Later, F1's `Depends` changes only that
-  fixture to use `app.dependency_overrides`.
+- Fixtures shared by more than one file belong in `conftest.py`, not copied between files.
+- Route tests take the `client` fixture; don't build a `TestClient` or patch routes in a test.
+- To change a test's data, override the records fixture: in the file for every test there,
+  or with `@pytest.mark.parametrize("<feature>_records", [...])` for one test.
+- Only data-free, read-only objects get `scope="session"`. Data fixtures stay per test.
+- Proposed: after F1's `Depends`, only `client` changes, to `app.dependency_overrides`.
