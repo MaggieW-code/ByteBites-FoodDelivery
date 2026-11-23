@@ -22,6 +22,7 @@ is valid.
 | `auth_model.py` | `AuthenticatedAccount` | The signed-in caller (`id`, `role`, `is_active`), built by authentication and read by protected routes |
 | | `Session` | A stored sign-in: `token_hash` (never the raw token), `account_id`, `created_at`, `expires_at` |
 | | `SignInRequest` | Request body for signing in. Password is `SecretStr` |
+| | `TokenResponse` | Sign-in response: `access_token`, `token_type` (`bearer`), `expires_at` |
 
 Two different classes are named `MenuItem` (`menu_model.py` and `menu_item_model.py`). #122
 merges the menu models into one file.

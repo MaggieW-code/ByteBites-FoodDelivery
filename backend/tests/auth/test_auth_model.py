@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from backend.app.models.auth_model import AuthenticatedAccount, Session, SignInRequest
+from backend.app.models.auth_model import AuthenticatedAccount, Session, SignInRequest, TokenResponse
 
 
 @pytest.fixture
@@ -54,3 +54,11 @@ def test_session_rejects_times_without_timezone(session_fields: dict[str, Any], 
 
     with pytest.raises(ValidationError):
         Session(**session_fields | {field: naive_time})
+
+
+def test_token_response_is_a_bearer_token_with_aware_expiry(session_fields: dict[str, Any]) -> None:
+    response = TokenResponse(access_token="abc", expires_at=session_fields["expires_at"])
+
+    assert response.token_type == "bearer"
+    with pytest.raises(ValidationError):
+        TokenResponse(access_token="abc", expires_at=session_fields["expires_at"].replace(tzinfo=None))

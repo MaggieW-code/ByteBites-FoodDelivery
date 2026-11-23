@@ -18,11 +18,11 @@ def make_customer(account_id: str = "cust_009", email: str = "new@example.com") 
     )
 
 
-def test_get_by_id_returns_stored_class_for_role(account_repository: AccountRepository) -> None:
+def test_get_by_id_returns_stored_class_for_role(account_repository: AccountRepository, test_password_hash: str) -> None:
     owner = account_repository.get_by_id("ownr_001")
 
     assert type(owner) is StoredRestaurantAccount
-    assert owner.password_hash == "scrypt$salt$hash"
+    assert owner.password_hash == test_password_hash
 
 
 def test_get_by_id_returns_none_when_missing(account_repository: AccountRepository) -> None:

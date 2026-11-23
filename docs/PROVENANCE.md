@@ -326,3 +326,21 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Influence: My agent updated README's and tests, I gave it the architecture I wanted it to follow and what I needed done. The major assist was on the `architecture change` with `json_list_store.py` where an issue with the current data storage system was found. By using `atomic writes` we can safely update files. Essentially a new copy is written and then swapped with the old copy. Upon success the new copy is the now current copy, otherwise the old copy remains the current.  
 - Validation: Ran tests, confirmed logic. All tests passed.
 - PR: TBD
+
+### Entry 21
+
+- Student(s): Maison Gulyas
+- Artifact: `backend/app/services/auth_service.py`, `backend/app/services/password_hashing.py`,
+  `backend/app/dependencies/auth.py`, `backend/app/dependencies/__init__.py`,
+  `backend/app/dependencies/README.md`, `backend/app/config.py`, `backend/app/models/auth_model.py`
+  (`TokenResponse`), `backend/tests/auth/test_auth_service.py`, `backend/tests/auth/test_password_hashing.py`,
+  `backend/tests/auth/test_auth_dependencies.py`, `backend/tests/auth/test_auth_config.py`,
+  `backend/tests/auth/auth_helpers.py`, `backend/tests/auth/conftest.py`, `backend/tests/auth/test_auth_model.py`,
+  `backend/tests/auth/test_account_repository.py`, `backend/app/README.md`, `backend/app/services/README.md`,
+  `backend/app/models/README.md`, `backend/tests/auth/README.md`
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: Essentially pair-coded. Went through different situations and pivoted as needed. 
+- Influence: The major influence was the dependency directory, it was a thought I had toyed with before however Claude gave concrete evidence for implementing it and checking industry standard. That being said the main intention is quick implementationa due to due dates and then refactorization after handing in M2. 
+- Validation: Checked tests, had it teach implementations back to me I didn't understand. 
+- PR: #TBD

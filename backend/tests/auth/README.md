@@ -13,12 +13,19 @@ folders: one test covers how a rule treats each role.
 | `test_auth_model.py` | `AuthenticatedAccount` is frozen and strict, `SignInRequest` hides the password and normalizes the email, `Session` round-trips through JSON and rejects times without a timezone |
 | `test_account_repository.py` | Lookups by ID and email, stored class per role, add and update persist across a new repository, IDs stay stable, missing and malformed files raise |
 | `test_session_repository.py` | Lookup by token hash, add keeps timezones, delete removes only one session, a missing file means no sessions, malformed files raise |
-| `conftest.py` | Auth-only fixtures: `account_records` (active customer, inactive customer, owner) and `session_records` → `accounts_file`, `sessions_file` → `account_repository`, `session_repository` |
+| `test_password_hashing.py` | The hash hides the password, verify accepts only the right one, salts differ, malformed hashes raise |
+| `test_auth_service.py` | Sign in (token, expiry, only the hash stored, same error for wrong password and unknown email, deactivated blocked), resolve token (unknown, expired and removed, deactivated), sign out, register, get and deactivate accounts |
+| `test_auth_dependencies.py` | On a small probe app: valid token identifies the caller, missing or bad tokens are 401 with `WWW-Authenticate`, expired 401, deactivated 403, `require_role` per role, bearer scheme in OpenAPI |
+| `test_auth_config.py` | Account and session paths (default and override), token lifetime (default, override, bad values rejected) |
+| `conftest.py` | Auth-only fixtures: `test_password_hash` (one real scrypt hash per session), `account_records` (active customer, inactive customer, owner) and `session_records` → files → repositories, `clock` (a `FakeClock`) → `auth_service` |
+| `auth_helpers.py` | Plain values tests import: `TEST_PASSWORD`, `TOKEN_LIFETIME`, `FakeClock`. Never import from `conftest.py` |
 
 ## How it connects
 
-- Tests `backend/app/models/account_model.py`, `backend/app/models/auth_model.py`,
-  `backend/app/repositories/account_repository.py` and `session_repository.py`.
+- Tests the auth models, repositories, `services/auth_service.py`, `services/password_hashing.py`,
+  `dependencies/auth.py` and the auth getters in `config.py`.
+- Time is injected: `AuthService` takes a `clock`, and tests pass a `FakeClock` they advance,
+  so expiry is tested without sleeping.
 - `conftest.py` here builds on `write_json` from `backend/tests/conftest.py`. Its fixtures move
   to the root conftest once tests outside this folder need them (route tests for protected
   restaurant and menu endpoints).
