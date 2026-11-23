@@ -343,7 +343,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 
 ### Entry 22
 
-- Student(s):
+- Student(s): Maison Gulyas
 - Artifact: `backend/app/routes/auth_routes.py` (new), `backend/tests/auth/test_auth_routes.py` (new),
   `backend/app/data/accounts.json` (new), `main.py`, `.gitignore`, `backend/tests/auth/conftest.py`,
   `backend/app/routes/README.md`, `backend/app/data/README.md`, `backend/tests/README.md`,
@@ -353,4 +353,4 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Purpose: Due to the fast pace that needs to occur to get this assignment done at this moment I had Claude co-code with me to get it done and walk me through changes as I implemented them and asked questions.
 - Influence: Tests and Routes since we had a error in a our structure with previous routes that will still need to be refactored that tend to break our architecture. 
 - Validation: Running tests, buidling the application and testing sign-in and signout as well as /me endpoints.
-- PR: #TBD
+- PR: #150
