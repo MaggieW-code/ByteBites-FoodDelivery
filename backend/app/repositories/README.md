@@ -11,8 +11,13 @@ plain methods, so services never see file paths or the file format.
 |---|---|---|---|
 | `restaurant_repository.py` | `restaurants.json` | `get_all`, `get_by_id`, `create`, `update` | `RestaurantDataNotFoundError`, `RestaurantDataMalformedError`, `RestaurantDataError` |
 | `menu_repository.py` | `menus.json` | `get_all`, `get_by_restaurant_id`, `find_item`, `add`, `update` | `MenuDataNotFoundError`, `MenuDataMalformedError`, `MenuDataError` |
+| `account_repository.py` | `accounts.json` | `get_by_id`, `get_by_email` (trimmed, case-insensitive), `add`, `update` | `DataFileMissingError`, `DataFileMalformedError` |
+| `session_repository.py` | `sessions.json` (runtime data; a missing file means no sessions) | `get_by_token_hash`, `add`, `delete_by_token_hash` | `DataFileMalformedError` |
+| `json_list_store.py` | none (helper) | `JsonListStore.load`, `save` (writes a temporary file, then replaces the real one) | `DataFileError` → `DataFileMissingError`, `DataFileMalformedError` |
 
-The three errors mean: the file is missing, the file isn't valid JSON, the top level isn't a list.
+The three restaurant and menu errors mean: the file is missing, the file isn't valid JSON, the
+top level isn't a list. The account and session repositories use `JsonListStore`, where a bad
+record also counts as malformed.
 
 ## How it connects
 
