@@ -15,6 +15,13 @@ is valid.
 | `menu_model.py` | `Menu`, `MenuItem` | A restaurant's menu as stored in `menus.json` and returned by `GET .../menu`. Price is `Decimal` |
 | `menu_item_model.py` | `CreateMenuItem`, `MenuItem` | Request body and response for adding a menu item. Price is `float` |
 | `update_menu_item_model.py` | `UpdateMenuItem` | Request body for updating a menu item |
+| `account_model.py` | `EightCharId`, `NonEmptyText`, `Role` | Shared type aliases, also imported by `auth_model.py` |
+| | `AccountCreationRequest` | Request body for registering. Password is `SecretStr` so it never prints |
+| | `AccountBase` → `CustomerAccount`, `RestaurantAccount`, `AdminAccount`; `Account` | API responses. `Account` picks the class from `role` |
+| | `StoredCredentials` → `Stored<Role>Account`; `StoredAccount` | Stored records: the public account plus `password_hash` |
+| `auth_model.py` | `AuthenticatedAccount` | The signed-in caller (`id`, `role`, `is_active`), built by authentication and read by protected routes |
+| | `Session` | A stored sign-in: `token_hash` (never the raw token), `account_id`, `created_at`, `expires_at` |
+| | `SignInRequest` | Request body for signing in. Password is `SecretStr` |
 
 Two different classes are named `MenuItem` (`menu_model.py` and `menu_item_model.py`). #122
 merges the menu models into one file.
