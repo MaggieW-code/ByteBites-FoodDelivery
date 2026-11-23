@@ -24,6 +24,7 @@ can change without coupling services to file formats or file operations.
 |---|---|---|---|---|
 | Restaurants | `routes/restaurant_routes.py` | `services/restaurant_service.py` | `repositories/restaurant_repository.py` | `data/restaurants.json` |
 | Menus | `routes/menu_routes.py` | `services/menu_service.py` | `repositories/menu_repository.py` | `data/menus.json` |
+| Auth | `routes/auth_routes.py` (+ `dependencies/auth.py`) | `services/auth_service.py` | `repositories/account_repository.py`, `repositories/session_repository.py` | `data/accounts.json`, `data/sessions.json` |
 
 All backend paths are relative to `backend/app/`. Request and response shapes are
 Pydantic models in `models/`. Services raise domain errors (for example,

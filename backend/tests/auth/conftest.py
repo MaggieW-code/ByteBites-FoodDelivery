@@ -1,4 +1,4 @@
-"""Auth-only fixtures. The write_json fixture comes from backend/tests/conftest.py."""
+"""Auth-only fixtures. The write_json and client fixtures come from backend/tests/conftest.py."""
 
 from collections.abc import Callable
 from datetime import datetime, timezone
@@ -6,12 +6,16 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi.testclient import TestClient
 
+from backend.app.dependencies.auth import get_auth_service
+from backend.app.models.auth_model import SignInRequest
 from backend.app.repositories.account_repository import AccountRepository
 from backend.app.repositories.session_repository import SessionRepository
 from backend.app.services.auth_service import AuthService
 from backend.app.services.password_hashing import hash_password
 from backend.tests.auth.auth_helpers import TEST_PASSWORD, TOKEN_LIFETIME, FakeClock
+from main import app
 
 
 # scrypt is slow on purpose; hash once per session. A str is immutable, so sharing is safe.
@@ -73,3 +77,21 @@ def auth_service(
     account_repository: AccountRepository, session_repository: SessionRepository, clock: FakeClock
 ) -> AuthService:
     return AuthService(account_repository, session_repository, token_lifetime=TOKEN_LIFETIME, clock=clock)
+
+
+@pytest.fixture
+def client(client: TestClient, monkeypatch: pytest.MonkeyPatch, auth_service: AuthService) -> TestClient:
+    monkeypatch.setitem(app.dependency_overrides, get_auth_service, lambda: auth_service)
+    return client
+
+
+@pytest.fixture
+def auth_headers(auth_service: AuthService) -> Callable[[str], dict[str, str]]:
+    """Factory fixture that returns _headers(email)"""
+
+    def _headers(email: str) -> dict[str, str]:
+        sign_in_request = SignInRequest(email=email, password=TEST_PASSWORD)
+        token = auth_service.sign_in(sign_in_request).access_token
+        return {"Authorization": f"Bearer {token}"}
+
+    return _headers
