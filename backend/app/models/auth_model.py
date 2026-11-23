@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import AwareDatetime, BaseModel, ConfigDict, SecretStr
 
 from backend.app.models.account_model import EightCharId, Email, NonEmptyText, Role
@@ -25,3 +27,11 @@ class Session(BaseModel):
 class SignInRequest(BaseModel):
     email: Email
     password: SecretStr
+
+
+class TokenResponse(BaseModel):
+    """Returned by sign-in. The client sends `access_token` back as `Authorization: Bearer <token>`."""
+
+    access_token: NonEmptyText
+    token_type: Literal["bearer"] = "bearer"
+    expires_at: AwareDatetime
