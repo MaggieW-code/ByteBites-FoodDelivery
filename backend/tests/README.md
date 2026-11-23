@@ -47,4 +47,7 @@ in one file.
 - To change a test's data, override the records fixture: in the file for every test there,
   or with `@pytest.mark.parametrize("<feature>_records", [...])` for one test.
 - Only data-free, read-only objects get `scope="session"`. Data fixtures stay per test.
-- Proposed: after F1's `Depends`, only `client` changes, to `app.dependency_overrides`.
+- Routes that take their service with `Depends` are swapped with
+  `monkeypatch.setitem(app.dependency_overrides, <provider>, ...)` in a feature conftest that
+  extends `client` (see `auth/conftest.py`). Proposed: restaurant and menu move to this after
+  F1, and `monkeypatch.setattr` on route modules goes away.
