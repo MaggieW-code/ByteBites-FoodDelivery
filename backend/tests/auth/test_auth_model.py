@@ -1,0 +1,56 @@
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
+import pytest
+from pydantic import ValidationError
+
+from backend.app.models.auth_model import AuthenticatedAccount, Session, SignInRequest
+
+
+@pytest.fixture
+def authenticated_customer() -> AuthenticatedAccount:
+    return AuthenticatedAccount(id="cust_001", role="customer", is_active=True)
+
+
+@pytest.fixture
+def session_fields() -> dict[str, Any]:
+    created_at = datetime(2026, 11, 22, 12, 0, tzinfo=timezone.utc)
+    return dict(
+        token_hash="sha256-of-token",
+        account_id="cust_001",
+        created_at=created_at,
+        expires_at=created_at + timedelta(hours=1),
+    )
+
+
+def test_authenticated_account_is_frozen(authenticated_customer: AuthenticatedAccount) -> None:
+    with pytest.raises(ValidationError):
+        authenticated_customer.role = "admin"
+
+
+@pytest.mark.parametrize("is_active", ["yes", "true", 1])
+def test_authenticated_account_is_strict(is_active: Any) -> None:
+    with pytest.raises(ValidationError):
+        AuthenticatedAccount(id="cust_001", role="customer", is_active=is_active)
+
+
+def test_sign_in_request_hides_password_and_normalizes_email() -> None:
+    request = SignInRequest(email="  Cara@Example.COM ", password="hunter2")
+
+    assert "hunter2" not in repr(request)
+    assert request.password.get_secret_value() == "hunter2"
+    assert request.email == "cara@example.com"
+
+
+def test_session_round_trips_through_json(session_fields: dict[str, Any]) -> None:
+    session = Session(**session_fields)
+
+    assert Session.model_validate_json(session.model_dump_json()) == session
+
+
+@pytest.mark.parametrize("field", ["created_at", "expires_at"])
+def test_session_rejects_times_without_timezone(session_fields: dict[str, Any], field: str) -> None:
+    naive_time = session_fields[field].replace(tzinfo=None)
+
+    with pytest.raises(ValidationError):
+        Session(**session_fields | {field: naive_time})

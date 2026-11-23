@@ -296,3 +296,14 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Ran the full backend suite before and after the refactor: 111 passed both times, so
   no tests were lost.
 - PR: #146
+
+### Entry 19
+
+- Student(s): Maison Gulyas
+- Artifact: `account_model.py`, `auth_model.py`, `test_account_model.py`, `test_auth_model.py`, `README.md`
+- Label: <!-- AI-GENERATED | AI-ASSISTED | AI-REVISED | NO-AI -->
+- AI tool: Claude (Claude Code)
+- Purpose: Help speedup writing models and tests. Models were implemented by me and polished by Claude.  
+- Influence: Models and aliases. 
+- Validation: Had tests written, broke models and fixed them, then finally updated models. 
+- PR: TBD
