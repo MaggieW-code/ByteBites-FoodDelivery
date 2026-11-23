@@ -13,7 +13,7 @@ in one file.
 | Layer | Files |
 |---|---|
 | Models | `test_restaurant_model.py`, `test_menu_item_model.py`, `test_update_menu_item_model.py` |
-| Repositories | `test_restaurant_repository.py`, `test_menu_repository.py` |
+| Repositories | `test_restaurant_repository.py`, `test_menu_repository.py`, `test_json_list_store.py` |
 | Services | `test_restaurant_service.py`, `test_menu_service.py` |
 | Routes (HTTP) | `test_restaurant_routes.py`, `test_restaurant_management.py`, `test_menu_routes.py`, `test_health_routes.py` |
 | One user story across layers | `test_restaurant_details.py`, `test_restaurant_cuisine_filter.py`, `test_menu.py` |
