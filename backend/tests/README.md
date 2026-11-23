@@ -19,6 +19,7 @@ in one file.
 | One user story across layers | `test_restaurant_details.py`, `test_restaurant_cuisine_filter.py`, `test_menu.py` |
 | Config | `test_config.py` |
 | Shared fixtures | `conftest.py` |
+| Feature folders | `auth/`: accounts, sign-in, sessions (see its README). New features get a folder; older files move in a later refactor |
 
 ## How it connects
 
