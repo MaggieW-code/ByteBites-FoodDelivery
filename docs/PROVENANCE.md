@@ -304,8 +304,10 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 ### Entry 19
 
 - Student(s): Maison Gulyas
-- Artifact: `account_model.py`, `auth_model.py`, `test_account_model.py`, `test_auth_model.py`, `README.md`
-- Label: <!-- AI-GENERATED | AI-ASSISTED | AI-REVISED | NO-AI -->
+- Artifact: `backend/app/models/account_model.py` (new), `backend/app/models/auth_model.py` (new),
+  `backend/tests/auth/test_account_model.py` (new), `backend/tests/auth/test_auth_model.py` (new),
+  `backend/app/models/README.md`, `backend/tests/README.md`, `backend/tests/auth/README.md` (new)
+- Label: AI-ASSISTED
 - AI tool: Claude (Claude Code)
 - Purpose: Help speedup writing models and tests. Models were implemented by me and polished by Claude.  
 - Influence: Models and aliases. 
@@ -315,27 +317,29 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 ### Entry 20
 
 - Student(s): Maison Gulyas
-- Artifact: `json_list_store.py`, `account_repository.py`,
-  `session_repository.py`, `backend/tests/auth/conftest.py`,
-  `backend/tests/auth/test_account_repository.py`, `backend/tests/auth/test_session_repository.py`,
-  `backend/tests/test_json_list_store.py`, `README.md`, `backend/tests/README.md`,
-  `backend/tests/auth/README.md`
+- Artifact: `backend/app/repositories/json_list_store.py` (new),
+  `backend/app/repositories/account_repository.py` (new),
+  `backend/app/repositories/session_repository.py` (new), `backend/tests/auth/conftest.py` (new),
+  `backend/tests/auth/test_account_repository.py` (new),
+  `backend/tests/auth/test_session_repository.py` (new), `backend/tests/test_json_list_store.py` (new),
+  `backend/app/repositories/README.md`, `backend/tests/README.md`, `backend/tests/auth/README.md`
 - Label: AI-ASSISTED
 - AI tool: Claude (Claude Code)
 - Purpose: Assistance instantiating the authentication Repository layer.
 - Influence: My agent updated README's and tests, I gave it the architecture I wanted it to follow and what I needed done. The major assist was on the `architecture change` with `json_list_store.py` where an issue with the current data storage system was found. By using `atomic writes` we can safely update files. Essentially a new copy is written and then swapped with the old copy. Upon success the new copy is the now current copy, otherwise the old copy remains the current.  
 - Validation: Ran tests, confirmed logic. All tests passed.
-- PR: TBD
+- PR: #148
 
 ### Entry 21
 
 - Student(s): Maison Gulyas
-- Artifact: `backend/app/services/auth_service.py`, `backend/app/services/password_hashing.py`,
-  `backend/app/dependencies/auth.py`, `backend/app/dependencies/__init__.py`,
-  `backend/app/dependencies/README.md`, `backend/app/config.py`, `backend/app/models/auth_model.py`
-  (`TokenResponse`), `backend/tests/auth/test_auth_service.py`, `backend/tests/auth/test_password_hashing.py`,
-  `backend/tests/auth/test_auth_dependencies.py`, `backend/tests/auth/test_auth_config.py`,
-  `backend/tests/auth/auth_helpers.py`, `backend/tests/auth/conftest.py`, `backend/tests/auth/test_auth_model.py`,
+- Artifact: `backend/app/services/auth_service.py` (new), `backend/app/services/password_hashing.py` (new),
+  `backend/app/dependencies/auth.py` (new), `backend/app/dependencies/__init__.py` (new),
+  `backend/app/dependencies/README.md` (new), `backend/app/config.py`, `backend/app/models/auth_model.py`
+  (`TokenResponse`), `backend/tests/auth/test_auth_service.py` (new),
+  `backend/tests/auth/test_password_hashing.py` (new), `backend/tests/auth/test_auth_dependencies.py` (new),
+  `backend/tests/auth/test_auth_config.py` (new), `backend/tests/auth/auth_helpers.py` (new),
+  `backend/tests/auth/conftest.py`, `backend/tests/auth/test_auth_model.py`,
   `backend/tests/auth/test_account_repository.py`, `backend/app/README.md`, `backend/app/services/README.md`,
   `backend/app/models/README.md`, `backend/tests/auth/README.md`
 - Label: AI-ASSISTED
@@ -343,7 +347,7 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Purpose: Essentially pair-coded. Went through different situations and pivoted as needed. 
 - Influence: The major influence was the dependency directory, it was a thought I had toyed with before however Claude gave concrete evidence for implementing it and checking industry standard. That being said the main intention is quick implementationa due to due dates and then refactorization after handing in M2. 
 - Validation: Checked tests, had it teach implementations back to me I didn't understand. 
-- PR: #TBD
+- PR: #149
 
 ### Entry 22
 
