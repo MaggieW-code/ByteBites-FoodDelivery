@@ -3,6 +3,11 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field
 
+from backend.app.models.restaurant_model import RestaurantId
+
+# The one place the menu item ID rule lives. Routes reuse it for path parameters.
+MenuItemId = Annotated[str, Field(strict=True, min_length=8, max_length=8)]
+
 # Accepted price: a JSON number (14.99) or a decimal string ("14.99"),
 # 0 or more (0 = free item), at most 2 decimal places, at most 999999.99.
 # Anything else (more decimals, inf/nan, too large, not a number) is rejected with 422,
@@ -33,8 +38,8 @@ class CreateMenuItem(BaseModel):
     
 # what the app saves and returns
 class MenuItem(CreateMenuItem):
-    id: str = Field(strict = True, min_length = 8, max_length = 8)
-    restaurant_id: str = Field(strict = True, min_length=8, max_length = 8)
+    id: MenuItemId
+    restaurant_id: RestaurantId
 
 class UpdateMenuItem(BaseModel):
     name: str | None = Field(default = None, strict = True, min_length = 1)

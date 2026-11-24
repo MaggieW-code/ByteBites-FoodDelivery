@@ -1,8 +1,10 @@
 from pathlib import Path
+from typing import Annotated
 from fastapi import APIRouter, HTTPException, Path as PathParameter, Query, status
 
 from backend.app.models.restaurant_model import (
     Restaurant,
+    RestaurantId,
     CreateRestaurantRequest,
     UpdateRestaurantRequest,
 )
@@ -39,12 +41,7 @@ def restaurants(
     },
 )
 def restaurant_details(
-    restaurant_id: str = PathParameter(
-        ...,
-        min_length=8,
-        max_length=8,
-        description="Restaurant ID, e.g. rest_001",
-    ),
+    restaurant_id: Annotated[RestaurantId, PathParameter(description="Restaurant ID, e.g. rest_001")],
 ) -> Restaurant:
     try:
         return restaurant_service.get_restaurant_by_id(

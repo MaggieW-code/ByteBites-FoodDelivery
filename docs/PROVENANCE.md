@@ -463,7 +463,29 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   the repository error, wrote a service test for the duplicate ID case, added
   `validation_errors.py` to the `backend/app` README and updated the error lists in both
   READMEs. The AI gave the git commands to squash the branch onto `origin/main`; the student ran
-  them. The ID-length suggestion was left for a separate issue.
+  them.
 - Validation: Ran the full pytest suite (260 passed). Confirmed the new test fails when the error
   wrapping is removed. Checked that the squashed commit has the same content as the old branch head.
+- PR: 132
+
+### Entry 29
+
+- Student(s): Junho Kim
+- Artifact: backend/app/models/restaurant_model.py, backend/app/models/menu_model.py,
+  backend/app/routes/menu_routes.py, backend/app/routes/restaurant_routes.py,
+  backend/tests/test_menu_routes.py, backend/app/models/README.md, backend/app/routes/README.md,
+  README.md, backend/README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Address Maison's suggestion on #132 to define the 8-character ID rule once and to
+  validate IDs on the PATCH menu route.
+- Influence: The AI defined `RestaurantId` in `restaurant_model.py` and `MenuItemId` in
+  `menu_model.py`, used them in the models and in the GET/POST/PATCH menu routes and the GET
+  restaurant route, and wrote PATCH and GET menu route tests for bad ID lengths (GET menu had
+  none, so switching it to the wrong form would have gone unnoticed). The AI tested both ways of
+  attaching `Path(...)` and found that `x: RestaurantId = Path(...)` silently drops the rule, so
+  the routes use `Annotated[RestaurantId, Path(...)]` and the routes README warns about it.
+  `EightCharId` in `account_model.py` was left alone because it is the account ID rule.
+- Validation: Ran the full pytest suite (267 passed). Confirmed the new PATCH test fails when the
+  route goes back to plain `str` parameters and the GET menu test fails with `= Path(...)`. No new ruff warnings in the changed files.
 - PR: 132

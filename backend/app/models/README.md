@@ -10,9 +10,11 @@ is valid.
 
 | File | Models | Role |
 |---|---|---|
-| `restaurant_model.py` | `Restaurant` | Stored record and API response |
+| `restaurant_model.py` | `RestaurantId` | The restaurant ID rule (exactly 8 characters), reused by menu models and route path parameters |
+| | `Restaurant` | Stored record and API response |
 | | `CreateRestaurantRequest`, `UpdateRestaurantRequest` | Request bodies for `POST` / `PATCH` |
-| `menu_model.py` | `Menu`, `MenuListItem` | A restaurant's menu as stored in `menus.json` and returned by `GET .../menu` |
+| `menu_model.py` | `MenuItemId`, `Price` | The menu item ID rule (exactly 8 characters) and the price rule, reused by routes |
+| | `Menu`, `MenuListItem` | A restaurant's menu as stored in `menus.json` and returned by `GET .../menu` |
 | | `CreateMenuItem`, `UpdateMenuItem` | Request bodies for `POST` / `PATCH .../menu` |
 | | `MenuItem` | A saved menu item (adds `id` and `restaurant_id`); response for `POST` / `PATCH` |
 | `account_model.py` | `EightCharId`, `NonEmptyText`, `Role` | Shared type aliases, also imported by `auth_model.py` |

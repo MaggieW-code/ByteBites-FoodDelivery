@@ -303,3 +303,25 @@ def test_add_menu_free_item_returns_201(client: TestClient, menus_file: Path, pr
     assert Decimal(response.json()["price"]) == Decimal("0")
     saved = json.loads(menus_file.read_text(encoding="utf-8"))
     assert Decimal(saved[0]["items"][0]["price"]) == Decimal("0")
+
+
+@pytest.mark.parametrize("menu_records", [UPDATE_MENUS])
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/restaurants/rest_01/menu/menu_002",  # restaurant ID too short
+        "/restaurants/rest_0001/menu/menu_002",  # restaurant ID too long
+        "/restaurants/rest_001/menu/menu_02",  # menu item ID too short
+        "/restaurants/rest_001/menu/menu_0002",  # menu item ID too long
+    ],
+)
+def test_update_menu_bad_id_length_returns_422(client: TestClient, menus_file: Path, path: str) -> None:
+    response = client.patch(path, json={"price": 3.99})
+
+    assert response.status_code == 422
+    assert json.loads(menus_file.read_text(encoding="utf-8")) == UPDATE_MENUS
+
+
+@pytest.mark.parametrize("bad_id", ["rest_01", "rest_0001", "r"])
+def test_get_menu_bad_restaurant_id_length_returns_422(client: TestClient, bad_id: str) -> None:
+    assert client.get(f"/restaurants/{bad_id}/menu").status_code == 422

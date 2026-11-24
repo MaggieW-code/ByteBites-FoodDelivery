@@ -145,7 +145,8 @@ Parcel serves the app locally and prints the URL. See
   `restaurant_id` is not 8 characters; nothing is saved in either case.
 - `PATCH /restaurants/{restaurant_id}/menu/{menu_item_id}` — updates any of
   `name`, `category`, `price`, or `is_available`. Returns `404` if the menu
-  item does not exist for that restaurant.
+  item does not exist for that restaurant and `422` if `restaurant_id` or
+  `menu_item_id` is not 8 characters; nothing is saved in either case.
 
 Request bodies that fail validation return `422`.
 
