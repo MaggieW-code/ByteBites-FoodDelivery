@@ -17,6 +17,7 @@ Price = Annotated[
     Field(ge=0, max_digits=8, decimal_places=2, allow_inf_nan=False),
 ]
 
+
 class MenuListItem(BaseModel):
     id: str
     name: str
@@ -24,25 +25,29 @@ class MenuListItem(BaseModel):
     price: Decimal
     is_available: bool
 
+
 class Menu(BaseModel):
     restaurant_id: str
     currency: str
     items: list[MenuListItem]
 
+
 class CreateMenuItem(BaseModel):
-    name: str = Field(strict = True, min_length = 1)
-    category: str = Field(strict = True, min_length = 1)
+    name: str = Field(strict=True, min_length=1)
+    category: str = Field(strict=True, min_length=1)
     price: Price
-    is_available: bool = Field(strict = True)
+    is_available: bool = Field(strict=True)
     description: str = Field(default="", strict=True)
-    
+
+
 # what the app saves and returns
 class MenuItem(CreateMenuItem):
     id: MenuItemId
     restaurant_id: RestaurantId
 
+
 class UpdateMenuItem(BaseModel):
-    name: str | None = Field(default = None, strict = True, min_length = 1)
-    category: str | None = Field(default = None, strict = True, min_length = 1)
+    name: str | None = Field(default=None, strict=True, min_length=1)
+    category: str | None = Field(default=None, strict=True, min_length=1)
     price: Price | None = None
-    is_available: bool | None = Field(default = None, strict = True)
+    is_available: bool | None = Field(default=None, strict=True)

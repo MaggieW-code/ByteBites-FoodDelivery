@@ -18,9 +18,7 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
-async def request_validation_error_handler(
-    request: Request, error: RequestValidationError
-) -> JSONResponse:
+async def request_validation_error_handler(request: Request, error: RequestValidationError) -> JSONResponse:
     # Same 422 body as FastAPI's default, but it doesn't crash (500) when the
     # rejected input is inf or nan, e.g. a price of 1e999.
     return JSONResponse(

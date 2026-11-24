@@ -225,20 +225,16 @@ def test_add_menu_accepts_number_or_decimal_string_price(client: TestClient, men
     "price_json",
     [
         "0.123456789012345678901",  # too many decimal places
-        "14.999",                   # too many decimal places
-        '"14.999"',                 # too many decimal places, as a string
-        "1e999",                    # becomes infinity
-        "1e300",                    # too large
-        "1000000",                  # too large
-        '"cheap"',                  # not a number
+        "14.999",  # too many decimal places
+        '"14.999"',  # too many decimal places, as a string
+        "1e999",  # becomes infinity
+        "1e300",  # too large
+        "1000000",  # too large
+        '"cheap"',  # not a number
     ],
 )
 def test_add_menu_unsupported_price_returns_422(client: TestClient, menus_file: Path, price_json: str) -> None:
-    body = (
-        '{"name": "Pho", "category": "Noodles", "price": '
-        + price_json
-        + ', "is_available": true}'
-    )
+    body = '{"name": "Pho", "category": "Noodles", "price": ' + price_json + ', "is_available": true}'
     response = client.post(
         "/restaurants/rest_001/menu",
         content=body,
