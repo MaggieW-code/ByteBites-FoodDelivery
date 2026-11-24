@@ -1,9 +1,13 @@
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Path as PathParameter, Query, status
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import Path as PathParameter
 
 from backend.app.models.restaurant_model import (
-    Restaurant,
     CreateRestaurantRequest,
+    Restaurant,
+    RestaurantId,
     UpdateRestaurantRequest,
 )
 from backend.app.repositories.restaurant_repository import RestaurantRepository
@@ -21,10 +25,16 @@ restaurant_service = RestaurantService(
 
 @router.get(
     "/restaurants", response_model=list[Restaurant],
-    description="List persisted restaurants, optionally filtered by cuisine. Matching is exact, case-insensitive, and ignores surrounding whitespace. No matches returns an empty list.",
+    description=(
+        "List persisted restaurants, optionally filtered by cuisine. Matching is exact, "
+        "case-insensitive, and ignores surrounding whitespace. No matches returns an empty list."
+    ),
 )
 def restaurants(
-    cuisine: str | None = Query(default=None, description="Cuisine to match, e.g. Japanese. Omit or leave blank for all cuisines."),
+    cuisine: str | None = Query(
+        default=None,
+        description="Cuisine to match, e.g. Japanese. Omit or leave blank for all cuisines.",
+    ),
 ) -> list[Restaurant]:
     return restaurant_service.get_restaurants(cuisine)
 
@@ -39,12 +49,7 @@ def restaurants(
     },
 )
 def restaurant_details(
-    restaurant_id: str = PathParameter(
-        ...,
-        min_length=8,
-        max_length=8,
-        description="Restaurant ID, e.g. rest_001",
-    ),
+    restaurant_id: Annotated[RestaurantId, PathParameter(description="Restaurant ID, e.g. rest_001")],
 ) -> Restaurant:
     try:
         return restaurant_service.get_restaurant_by_id(

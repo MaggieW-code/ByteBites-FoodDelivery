@@ -362,3 +362,130 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Influence: Tests and Routes since we had a error in a our structure with previous routes that will still need to be refactored that tend to break our architecture. 
 - Validation: Running tests, buidling the application and testing sign-in and signout as well as /me endpoints.
 - PR: #150
+
+### Entry 23
+
+- Student(s): Junho Kim
+- Artifact: backend/app/routes/menu_routes.py, backend/tests/test_menu_routes.py
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Return 422 for a badly formatted restaurant ID when adding a menu item (#123).
+- Influence: The AI added the same 8-character `PathParameter` rule used by the GET menu route
+  to the POST route, and wrote route tests for 201 (existing restaurant) and 422
+  (`rest_01`, `rest_0001`, `r`, with nothing saved). The student reviewed the change and
+  explained back how FastAPI rejects the request before the service runs.
+- Validation: Ran the full pytest suite (118 passed). Confirmed the new 422 tests fail when
+  the route change is removed.
+- PR: 132
+
+### Entry 24
+
+- Student(s): Junho Kim
+- Artifact: backend/app/repositories/menu_repository.py, backend/app/services/menu_service.py
+- Label: AI-ASSISTED
+- AI tool: Claude (Claude Code)
+- Purpose: Add menu item lookup by ID for Cart and Checkout (#124).
+- Influence: The AI explained the route → service → repository structure, gave a worked
+  example of a nested-loop search on sample data, and reviewed the student's code. The student
+  wrote `find_item_by_id` and `get_menu_item`, fixing issues found in review (missing
+  `get_all()` call, `return None` inside the loop, wrong repository method, missing return).
+  After checking the Cart (#117) and Checkout (#118) requirements, the student decided to also
+  check that the item's restaurant exists and is active; the AI provided the structure for that
+  check and the new `MenuRestaurantInactiveError`, which the student typed in.
+- Validation: Called `get_menu_item` on every item in `menus.json` and an unknown ID; ran the
+  full pytest suite.
+- PR: 132
+
+### Entry 25
+
+- Student(s): Junho Kim
+- Artifact: backend/tests/test_menu_service.py
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Test the menu item lookup for #124.
+- Influence: The AI wrote four service tests: item found (price, availability, restaurant ID),
+  unknown item, inactive restaurant, and missing restaurant.
+- Validation: Ran the full pytest suite (122 passed). Confirmed the inactive-restaurant test
+  fails when the `is_active` check is removed.
+- PR: 132
+
+### Entry 26
+
+- Student(s): Junho Kim
+- Artifact: README.md, backend/README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Document the Restaurant & Menu Integration epic (#116).
+- Influence: The AI added the 404/422 rules for adding a menu item, the decimal price format,
+  and the `get_menu_item` lookup and its errors.
+- Validation: Checked the descriptions against `menu_routes.py` and `menu_service.py`.
+- PR: 132
+
+### Entry 27
+
+- Student(s): Junho Kim
+- Artifact: backend/app/models/menu_model.py, backend/app/repositories/menu_repository.py,
+  backend/app/services/menu_service.py, backend/app/validation_errors.py, main.py,
+  backend/tests/test_menu_routes.py, backend/tests/test_menu_repository.py,
+  backend/tests/test_menu_service.py, backend/tests/test_menu_item_model.py,
+  backend/tests/test_update_menu_item_model.py, README.md, backend/README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Address PR #132 review comments on the price format and global menu item ID lookup.
+- Influence: The AI defined the price rule (number or decimal string, 0 or more so free items
+  work with Checkout #144, at most 2 decimal places, at most 999999.99, no inf/nan) with Pydantic `Field` constraints, added a
+  422 handler so rejected inputs like `1e999` no longer cause a 500, made new item IDs unique
+  across all menus, made `find_item_by_id` raise `DuplicateMenuItemIdError` on duplicate IDs,
+  and wrote route, repository and service tests for these cases. The student asked for the fix
+  because of the deadline and reviewed the changes. The team decided to allow a price of 0.
+  After rebasing on main, the AI resolved the provenance conflict (renumbered entries after
+  Entry 16), updated the folder READMEs in `backend/app/models`, `services` and `data` that
+  still described the old menu model files, and fixed ruff warnings in the files this PR touches.
+  After merging main (#146), the AI resolved the conflicts in `backend/tests/test_menu_routes.py`
+  by moving this PR's menu route tests onto the shared `client` and `menus_file` fixtures in
+  `conftest.py`, kept the invalid price test at -1 because 0 is now a valid price, and renumbered
+  this PR's provenance entries to 23-27 after Entries 17-22 from main.
+- Validation: Ran the full pytest suite (151 passed) before and after the merge. Confirmed the new
+  tests fail when each fix is removed.
+- PR: 132
+
+### Entry 28
+
+- Student(s): Junho Kim
+- Artifact: backend/app/services/menu_service.py, backend/tests/test_menu_service.py,
+  backend/app/README.md, backend/README.md, README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Address Maison's second review on #132: document `validation_errors.py`, stop the
+  repository's `DuplicateMenuItemIdError` leaking out of `MenuService`, and replace the two merge
+  commits with a linear history so the epic can be merged with Rebase and merge.
+- Influence: The AI added `MenuDataIntegrityError` and made `get_menu_item` raise it instead of
+  the repository error, wrote a service test for the duplicate ID case, added
+  `validation_errors.py` to the `backend/app` README and updated the error lists in both
+  READMEs. The AI gave the git commands to squash the branch onto `origin/main`; the student ran
+  them.
+- Validation: Ran the full pytest suite (260 passed). Confirmed the new test fails when the error
+  wrapping is removed. Checked that the squashed commit has the same content as the old branch head.
+- PR: 132
+
+### Entry 29
+
+- Student(s): Junho Kim
+- Artifact: backend/app/models/restaurant_model.py, backend/app/models/menu_model.py,
+  backend/app/routes/menu_routes.py, backend/app/routes/restaurant_routes.py,
+  backend/tests/test_menu_routes.py, backend/app/models/README.md, backend/app/routes/README.md,
+  README.md, backend/README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Address Maison's suggestion on #132 to define the 8-character ID rule once and to
+  validate IDs on the PATCH menu route.
+- Influence: The AI defined `RestaurantId` in `restaurant_model.py` and `MenuItemId` in
+  `menu_model.py`, used them in the models and in the GET/POST/PATCH menu routes and the GET
+  restaurant route, and wrote PATCH and GET menu route tests for bad ID lengths (GET menu had
+  none, so switching it to the wrong form would have gone unnoticed). The AI tested both ways of
+  attaching `Path(...)` and found that `x: RestaurantId = Path(...)` silently drops the rule, so
+  the routes use `Annotated[RestaurantId, Path(...)]` and the routes README warns about it.
+  `EightCharId` in `account_model.py` was left alone because it is the account ID rule.
+- Validation: Ran the full pytest suite (267 passed). Confirmed the new PATCH test fails when the
+  route goes back to plain `str` parameters and the GET menu test fails with `= Path(...)`. No new ruff warnings in the changed files.
+- PR: 132

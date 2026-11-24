@@ -41,8 +41,10 @@ Each file exposes a `router` that `main.py` registers with `app.include_router`.
 - Catch only the named domain errors the service raises and re-raise as
   `HTTPException(status_code=..., detail=str(error)) from error`. Never catch `ValueError`
   or `Exception`. Storage errors from repositories are left to become a 500.
-- Validate path parameters with `Path(...)` (IDs are exactly 8 characters) on every route
-  that takes them, not only the `GET` routes.
+- Validate ID path parameters on every route that takes them, not only the `GET` routes.
+  Reuse the ID type from `models/` and only add a description:
+  `restaurant_id: Annotated[RestaurantId, Path(description=...)]`. Don't write
+  `restaurant_id: RestaurantId = Path(...)`: FastAPI then silently drops the 8-character rule.
 - Not yet true:
   - Restaurant and menu routes build their own repositories and know where `data/` is
     (F1, F2). `auth_routes.py` shows the target: `Depends` on a provider in `dependencies/`.

@@ -15,6 +15,7 @@ The backend application package. It holds every backend layer plus the app's con
 | `repositories/` | The only code that reads or writes `data/` |
 | `models/` | Pydantic models shared by every layer |
 | `data/` | JSON files that stand in for a database |
+| `validation_errors.py` | The app's 422 handler, registered in `main.py`. Same body as FastAPI's default, but rejected inputs like `inf` (a price of `1e999`) are shown as text so the response stays valid JSON instead of a 500 |
 | `config.py` | Settings read from environment variables, with defaults. `get_restaurant_data_path()` (`RESTAURANT_TRIAL_PATH`), `get_accounts_data_path()` (`ACCOUNTS_PATH`), `get_sessions_data_path()` (`SESSIONS_PATH`), each defaulting to a file in `data/`; `get_auth_token_lifetime()` (`AUTH_TOKEN_TTL_MINUTES`, default 60, must be a positive whole number) |
 
 Each folder has its own README with the details.

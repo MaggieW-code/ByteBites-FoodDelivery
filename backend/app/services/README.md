@@ -33,5 +33,4 @@ workflow. Services can be tested without HTTP or real files.
   editable) live here or on the models, nowhere else.
 - No file paths, no `open`, no `json`.
 - Not yet true: services convert repository dicts with `Model(**record)`;
-  `update_restaurant` raises `ValueError` and returns `None` for not-found; `add_menu` doesn't
-  check the restaurant exists (#123); `update_menu` saves prices as `float`.
+  `update_restaurant` raises `ValueError` and returns `None` for not-found.
