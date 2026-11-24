@@ -55,3 +55,6 @@ Each file exposes a `router` that `main.py` registers with `app.include_router`.
   - Error handling is inconsistent across routes (F21): `POST .../menu` handles no errors,
     `PATCH .../menu/{id}` hardcodes its message and drops `from error`, and only two
     routes document their 404 in `responses`.
+
+auth_routes.py provides POST /auth/sign-in, GET /auth/me, and POST /auth/sign-out.
+order_routes.py uses the shared CurrentCustomer dependency for order details and history.

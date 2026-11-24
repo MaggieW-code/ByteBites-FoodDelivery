@@ -38,3 +38,6 @@ frontend/dist/
 
 # Session Tokens
 backend/app/data/sessions.json
+
+# Local order records
+/backend/app/data/orders.json

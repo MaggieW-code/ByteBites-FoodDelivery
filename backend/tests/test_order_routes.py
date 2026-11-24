@@ -2,7 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.repositories.order_repository import OrderRepository
-from backend.app.routes.order_routes import get_authenticated_order_customer_id, get_order_service
+from backend.app.routes.auth_dependencies import AuthenticatedCustomer, get_current_active_customer
+from backend.app.routes.order_routes import get_order_service
 from backend.app.services.order_service import OrderService
 from backend.tests.test_order_repository import make_order
 from main import app
@@ -19,7 +20,9 @@ def order_api(tmp_path, monkeypatch):
 @pytest.fixture
 def customer_api(order_api, monkeypatch):
     monkeypatch.setitem(
-        app.dependency_overrides, get_authenticated_order_customer_id, lambda: "customer_001"
+        app.dependency_overrides,
+        get_current_active_customer,
+        lambda: AuthenticatedCustomer(customer_id="customer_001"),
     )
     return order_api
 
