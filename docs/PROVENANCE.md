@@ -285,7 +285,11 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 ### Entry 18
 
 - Student(s): Maison Gulyas
-- Artifact: `conftest.py`, `test_menu_routes.py`, `test_restaurant_management.py`, `test_restaurant_routes.py`, `test_menu.py`, `test_restaurant_details.py`,`test_restaurant_cuisine_filter.py`, `test_config.py`, `test_health_routes.py`, `README.md`
+- Artifact: `backend/tests/conftest.py`, `backend/tests/test_menu_routes.py`,
+  `backend/tests/test_restaurant_management.py`, `backend/tests/test_restaurant_routes.py`,
+  `backend/tests/test_menu.py`, `backend/tests/test_restaurant_details.py`,
+  `backend/tests/test_restaurant_cuisine_filter.py`, `backend/tests/test_config.py`,
+  `backend/tests/test_health_routes.py`, `backend/tests/README.md`
 - Label: AI-GENERATED
 - AI tool: Claude (Claude Code)
 - Purpose: Each test module built its own data and paths, which made tests brittle and let them

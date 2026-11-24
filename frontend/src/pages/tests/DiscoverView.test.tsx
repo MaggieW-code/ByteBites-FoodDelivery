@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // F35: the empty-state message shows only after loading finishes without an error.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitForElementToBeRemoved } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Discover } from "../DiscoverView";
 import { fetchRestaurants } from "../../api/restaurants";
@@ -11,13 +11,14 @@ import type { Restaurant } from "../../types/restaurant";
 vi.mock("../../api/restaurants", () => ({ fetchRestaurants: vi.fn() }));
 const mockFetch = vi.mocked(fetchRestaurants);
 
-const sushiPlace = {
+const sushiPlace: Restaurant = {
   id: "r1",
   name: "Sushi Place",
   cuisine: "Japanese",
   rating: 4.5,
   address: "1 Main St",
-} as Restaurant;
+  is_active: true,
+};
 
 // Router needed for <Link>
 const renderDiscover = () =>
@@ -56,7 +57,9 @@ describe("Discover empty state", () => {
   it("shows the empty message when there are no restaurants", async () => {
     mockFetch.mockResolvedValue([]);
     renderDiscover();
-    expect(await screen.findByText(EMPTY)).toBeTruthy();
+    // Wait for loading to finish so the check sees the final state
+    await waitForElementToBeRemoved(() => screen.queryByRole("status"));
+    expect(screen.getByText(EMPTY)).toBeTruthy();
   });
 
   it("shows the no-match message when a cuisine filter matches nothing", async () => {
