@@ -1,19 +1,8 @@
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
-from pydantic import BaseModel, ConfigDict
 
-from backend.app.models.cart_model import Identifier
-
-
-class AuthenticatedAccount(BaseModel):
-    """Trusted account data supplied by authentication after credential verification."""
-
-    model_config = ConfigDict(strict=True, frozen=True)
-
-    id: Identifier
-    role: str
-    is_active: bool
+from backend.app.models.authenticated_account_model import AuthenticatedAccount
 
 
 def get_authenticated_account(request: Request) -> AuthenticatedAccount:

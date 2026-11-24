@@ -3,7 +3,8 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app.cart_auth import AuthenticatedAccount, get_authenticated_account
+from backend.app.cart_auth import get_authenticated_account
+from backend.app.models.authenticated_account_model import AuthenticatedAccount
 from backend.app.repositories.cart_repository import CartRepository
 from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
