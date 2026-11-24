@@ -56,6 +56,22 @@ def test_invalid_price():
         )
 
 
+@pytest.mark.parametrize(
+    ("make_model", "field"),
+    [(make_item, "unit_price"), (make_item, "line_total"), (make_order, "total")],
+)
+def test_rejects_fractional_cents(make_model, field):
+    model = make_model()
+    data = model.model_dump()
+    data[field] = Decimal("12.501")
+
+    with pytest.raises(ValidationError) as error:
+        type(model).model_validate(data)
+
+    assert error.value.errors()[0]["loc"] == (field,)
+    assert error.value.errors()[0]["type"] == "decimal_max_places"
+
+
 def test_incorrect_line_total():
     with pytest.raises(ValidationError):
         OrderItem(
@@ -107,15 +123,30 @@ def test_empty_order_items():
         )
 
 
-def test_missing_customer_id():
-    with pytest.raises(ValidationError):
-        Order(
-            order_id="order_001",
-            customer_id="",
-            restaurant_id="rest_001",
-            items=[make_item()],
-            total=Decimal("25.00"),
-        )
+@pytest.mark.parametrize(
+    ("make_model", "field"),
+    [
+        (make_item, "item_id"),
+        (make_order, "order_id"),
+        (make_order, "customer_id"),
+        (make_order, "restaurant_id"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("value", "error_type"),
+    [("", "string_too_short"), ("a" * 65, "string_too_long"), ("id /1", "string_pattern_mismatch")],
+)
+def test_rejects_invalid_identifiers(make_model, field, value, error_type):
+    model = make_model()
+    data = model.model_dump()
+    data[field] = value
+
+    with pytest.raises(ValidationError) as error:
+        type(model).model_validate(data)
+
+    assert error.value.errors()[0]["loc"] == (field,)
+    assert error.value.errors()[0]["type"] == error_type
+
 
 def test_zero_price_item_is_valid():
     item = OrderItem(
