@@ -2,8 +2,9 @@ import json
 
 from pytest import raises
 
-from backend.app.models.menu_item_model import MenuItem
+from backend.app.models.menu_model import MenuItem
 from backend.app.repositories.menu_repository import (
+    DuplicateMenuItemIdError,
     MenuDataError,
     MenuDataMalformedError,
     MenuDataNotFoundError,
@@ -13,7 +14,7 @@ from backend.app.repositories.menu_repository import (
 
 def _entry(item: MenuItem) -> dict:
     """How an item is stored inside a restaurant's 'items' list."""
-    return item.model_dump(exclude={"restaurant_id"})
+    return item.model_dump(mode="json",exclude={"restaurant_id"})
 
 
 def _menus_with_two_items() -> list[dict]:
@@ -27,7 +28,7 @@ def _menus_with_two_items() -> list[dict]:
                     "name": "Cheese Burger",
                     "category": "Mains",
                     "description": "",
-                    "price": 15.99,
+                    "price": "15.99",
                     "is_available": True,
                 },
                 {
@@ -35,7 +36,7 @@ def _menus_with_two_items() -> list[dict]:
                     "name": "French Fries",
                     "category": "Sides",
                     "description": "",
-                    "price": 4.99,
+                    "price": "4.99",
                     "is_available": True,
                 },
             ],
@@ -265,3 +266,56 @@ def test_update_menu_missing_file(tmp_path) -> None:
 
     with raises(MenuDataNotFoundError):
         repository.update(item)
+
+def test_find_item_by_id_returns_item_with_restaurant_id(tmp_path) -> None:
+    test_file = tmp_path / "menus.json"
+    _menus = _menus_with_two_items()
+    test_file.write_text(json.dumps(_menus), encoding="utf-8")
+
+    repository = MenuRepository(test_file)
+
+    assert repository.find_item_by_id("menu_002") == {
+        **_menus[0]["items"][1],
+        "restaurant_id": "rest_001",
+    }
+    assert repository.find_item_by_id("menu_999") is None
+
+
+def test_find_item_by_id_duplicate_across_restaurants_raises(tmp_path) -> None:
+    test_file = tmp_path / "menus.json"
+    _menus = _menus_with_two_items()
+    # same item ID "menu_001" also used by another restaurant
+    _menus.append(
+        {
+            "restaurant_id": "rest_002",
+            "currency": "CAD",
+            "items": [
+                {
+                    "id": "menu_001",
+                    "name": "Salmon Roll",
+                    "category": "Sushi",
+                    "description": "",
+                    "price": "9.00",
+                    "is_available": True,
+                }
+            ],
+        }
+    )
+    test_file.write_text(json.dumps(_menus), encoding="utf-8")
+
+    repository = MenuRepository(test_file)
+
+    with raises(DuplicateMenuItemIdError):
+        repository.find_item_by_id("menu_001")
+    # an ID that is not duplicated still works
+    assert repository.find_item_by_id("menu_002")["restaurant_id"] == "rest_001"
+
+
+def test_item_id_exists_checks_all_menus(tmp_path) -> None:
+    test_file = tmp_path / "menus.json"
+    test_file.write_text(json.dumps(_menus_with_two_items()), encoding="utf-8")
+
+    repository = MenuRepository(test_file)
+
+    assert repository.item_id_exists("menu_002") is True
+    assert repository.item_id_exists("menu_999") is False

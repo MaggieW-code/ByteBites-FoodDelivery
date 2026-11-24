@@ -12,9 +12,9 @@ is valid.
 |---|---|---|
 | `restaurant_model.py` | `Restaurant` | Stored record and API response |
 | | `CreateRestaurantRequest`, `UpdateRestaurantRequest` | Request bodies for `POST` / `PATCH` |
-| `menu_model.py` | `Menu`, `MenuItem` | A restaurant's menu as stored in `menus.json` and returned by `GET .../menu`. Price is `Decimal` |
-| `menu_item_model.py` | `CreateMenuItem`, `MenuItem` | Request body and response for adding a menu item. Price is `float` |
-| `update_menu_item_model.py` | `UpdateMenuItem` | Request body for updating a menu item |
+| `menu_model.py` | `Menu`, `MenuListItem` | A restaurant's menu as stored in `menus.json` and returned by `GET .../menu` |
+| | `CreateMenuItem`, `UpdateMenuItem` | Request bodies for `POST` / `PATCH .../menu` |
+| | `MenuItem` | A saved menu item (adds `id` and `restaurant_id`); response for `POST` / `PATCH` |
 | `account_model.py` | `EightCharId`, `NonEmptyText`, `Role` | Shared type aliases, also imported by `auth_model.py` |
 | | `AccountCreationRequest` | Request body for registering. Password is `SecretStr` so it never prints |
 | | `AccountBase` → `CustomerAccount`, `RestaurantAccount`, `AdminAccount`; `Account` | API responses. `Account` picks the class from `role` |
@@ -24,8 +24,8 @@ is valid.
 | | `SignInRequest` | Request body for signing in. Password is `SecretStr` |
 | | `TokenResponse` | Sign-in response: `access_token`, `token_type` (`bearer`), `expires_at` |
 
-Two different classes are named `MenuItem` (`menu_model.py` and `menu_item_model.py`). #122
-merges the menu models into one file.
+All menu prices are `Decimal` (`Price` in `menu_model.py`): a number or decimal string,
+0 or more, at most 2 decimal places, at most 999999.99.
 
 ## How it connects
 
@@ -64,5 +64,6 @@ routes ──► services ──► repositories ──► data/
   called through `openapi-fetch` in `frontend/src/api/`. CI regenerates and fails on any diff,
   so a model change without regenerated types can't merge. Every route needs a
   `response_model` for its type to be generated.
-- Not yet true: `menu_item_model.py` and `update_menu_item_model.py` use `float`
-  prices and skip the `Request` suffix, and `menu_model.py` has no field constraints.
+- Not yet true: the menu request models skip the `Request` suffix, `Menu` /
+  `MenuListItem` have no field constraints, and `price` is not `strict` (so a decimal
+  string like `"14.99"` is accepted).

@@ -139,14 +139,36 @@ Parcel serves the app locally and prints the URL. See
   (`restaurant_id`, `currency`, `items`). A restaurant with no items returns
   an empty menu. Returns `404` if the restaurant does not exist.
 - `POST /restaurants/{restaurant_id}/menu` — adds a menu item. Body: `name`,
-  `category`, `price` (greater than 0), `is_available`, and optional
+  `category`, `price` (0 or more), `is_available`, and optional
   `description`. Returns `201` with the created item, including its
-  generated `id`.
+  generated `id`. Returns `404` if the restaurant does not exist and `422` if
+  `restaurant_id` is not 8 characters; nothing is saved in either case.
 - `PATCH /restaurants/{restaurant_id}/menu/{menu_item_id}` — updates any of
   `name`, `category`, `price`, or `is_available`. Returns `404` if the menu
   item does not exist for that restaurant.
 
 Request bodies that fail validation return `422`.
+
+Prices are exact decimals: they are stored in `menus.json` and returned by the
+API as strings (e.g. `"14.99"`). A request may send the price as a number
+(`14.99`) or a decimal string (`"14.99"`). It must be 0 or more (0 is a free
+item), have at most 2 decimal places, and be at most `999999.99`. Anything
+else (for example `-1`, `14.999`, `1e999` or `"cheap"`) returns `422` and nothing is saved.
+
+Menu item IDs are unique across all restaurants. New IDs are checked against
+every menu before they are saved.
+
+### Menu item lookup (for Cart and Checkout)
+
+`MenuService.get_menu_item(menu_item_id)` finds a menu item using only its ID
+and returns a `MenuItem` with its current `price` (`Decimal`), `is_available`,
+`name`, and `restaurant_id`. Cart and Checkout use it to validate items and get
+current prices. It is a service method, not an HTTP endpoint. It raises:
+
+- `MenuItemNotFoundError` if no item has that ID
+- `MenuRestaurantNotFoundError` if the item's restaurant does not exist
+- `MenuRestaurantInactiveError` if the item's restaurant is not active
+- `DuplicateMenuItemIdError` if more than one item in `menus.json` has that ID
 
 ## Run tests
 

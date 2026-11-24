@@ -35,4 +35,19 @@ Menu JSON is assumed to have valid records and unique identifiers.
 Responses: 200 for a menu (empty items for a known restaurant without a menu),
 404 for an unknown restaurant and 422 for a non-eight-character ID. Empty menus default to CAD. See `/docs`.
 
+`POST /restaurants/{restaurant_id}/menu` follows the same rules: 201 with the
+created item, 404 for an unknown restaurant and 422 for a non-eight-character
+ID. Nothing is saved on 404 or 422.
+
+Prices (POST and PATCH) may be a number or a decimal string, must be 0 or more
+(0 is a free item), have at most 2 decimal places and be at most 999999.99; otherwise 422.
+New item IDs are unique across all menus.
+
+`MenuService.get_menu_item(menu_item_id)` looks up a single item by ID across
+all menus for Cart and Checkout. It returns a `MenuItem` (price as `Decimal`,
+availability, restaurant ID) and raises `MenuItemNotFoundError`,
+`MenuRestaurantNotFoundError`, or `MenuRestaurantInactiveError`. If
+`menus.json` has the same item ID more than once, the repository raises
+`DuplicateMenuItemIdError` instead of guessing.
+
 Run isolated menu tests with `python3 -m pytest backend/tests/test_menu.py -v`.
