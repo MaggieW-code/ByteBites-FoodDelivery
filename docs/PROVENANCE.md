@@ -448,3 +448,22 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Ran the full pytest suite (151 passed) before and after the merge. Confirmed the new
   tests fail when each fix is removed.
 - PR: 132
+
+### Entry 28
+
+- Student(s): Junho Kim
+- Artifact: backend/app/services/menu_service.py, backend/tests/test_menu_service.py,
+  backend/app/README.md, backend/README.md, README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Address Maison's second review on #132: document `validation_errors.py`, stop the
+  repository's `DuplicateMenuItemIdError` leaking out of `MenuService`, and replace the two merge
+  commits with a linear history so the epic can be merged with Rebase and merge.
+- Influence: The AI added `MenuDataIntegrityError` and made `get_menu_item` raise it instead of
+  the repository error, wrote a service test for the duplicate ID case, added
+  `validation_errors.py` to the `backend/app` README and updated the error lists in both
+  READMEs. The AI gave the git commands to squash the branch onto `origin/main`; the student ran
+  them. The ID-length suggestion was left for a separate issue.
+- Validation: Ran the full pytest suite (260 passed). Confirmed the new test fails when the error
+  wrapping is removed. Checked that the squashed commit has the same content as the old branch head.
+- PR: 132

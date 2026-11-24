@@ -168,7 +168,7 @@ current prices. It is a service method, not an HTTP endpoint. It raises:
 - `MenuItemNotFoundError` if no item has that ID
 - `MenuRestaurantNotFoundError` if the item's restaurant does not exist
 - `MenuRestaurantInactiveError` if the item's restaurant is not active
-- `DuplicateMenuItemIdError` if more than one item in `menus.json` has that ID
+- `MenuDataIntegrityError` if more than one item in `menus.json` has that ID
 
 ## Run tests
 

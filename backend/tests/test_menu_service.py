@@ -8,6 +8,7 @@ from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services import menu_service as menu_service_module
 from backend.app.services.menu_service import (
+    MenuDataIntegrityError,
     MenuItemNotFoundError,
     MenuRestaurantInactiveError,
     MenuRestaurantNotFoundError,
@@ -318,3 +319,17 @@ def test_get_menu_item_service_free_item(tmp_path) -> None:
     item = service.get_menu_item("menu_002")
 
     assert item.price == Decimal("0")
+
+
+def test_get_menu_item_service_duplicate_id_raises_service_error(tmp_path) -> None:
+    # the repository's DuplicateMenuItemIdError must not leak out of the service
+    menus = _two_item_menus()
+    menus.append({
+        "restaurant_id": "rest_002",
+        "currency": "CAD",
+        "items": [{**menus[0]["items"][0], "name": "Salmon Roll"}],
+    })
+    service, _, _ = _make_service(tmp_path, menus)
+
+    with raises(MenuDataIntegrityError):
+        service.get_menu_item("menu_001")

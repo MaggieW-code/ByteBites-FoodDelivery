@@ -2,7 +2,7 @@ import uuid
 from decimal import Decimal
 
 from backend.app.models.menu_model import CreateMenuItem, Menu, MenuItem, UpdateMenuItem
-from backend.app.repositories.menu_repository import MenuRepository
+from backend.app.repositories.menu_repository import DuplicateMenuItemIdError, MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 
 
@@ -15,6 +15,11 @@ class MenuItemNotFoundError(Exception):
 
 
 class MenuRestaurantInactiveError(Exception):
+    pass
+
+
+# menus.json is in a state the service can't trust (e.g. the same item ID twice)
+class MenuDataIntegrityError(Exception):
     pass
 
 
@@ -32,7 +37,10 @@ class MenuService:
         return Menu(**menu)
 
     def get_menu_item(self, menu_item_id: str) -> MenuItem:
-        record = self.menu_repository.find_item_by_id(menu_item_id)
+        try:
+            record = self.menu_repository.find_item_by_id(menu_item_id)
+        except DuplicateMenuItemIdError as error:
+            raise MenuDataIntegrityError(str(error)) from error
         if record is None:
             raise MenuItemNotFoundError(f"Menu item '{menu_item_id}' not found")
         restaurant = self.restaurant_repository.get_by_id(record["restaurant_id"])

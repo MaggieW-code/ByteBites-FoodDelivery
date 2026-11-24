@@ -47,7 +47,8 @@ New item IDs are unique across all menus.
 all menus for Cart and Checkout. It returns a `MenuItem` (price as `Decimal`,
 availability, restaurant ID) and raises `MenuItemNotFoundError`,
 `MenuRestaurantNotFoundError`, or `MenuRestaurantInactiveError`. If
-`menus.json` has the same item ID more than once, the repository raises
-`DuplicateMenuItemIdError` instead of guessing.
+`menus.json` has the same item ID more than once, it raises
+`MenuDataIntegrityError` instead of guessing (the repository's
+`DuplicateMenuItemIdError` never leaves the service).
 
 Run isolated menu tests with `python3 -m pytest backend/tests/test_menu.py -v`.
