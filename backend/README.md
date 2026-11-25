@@ -56,22 +56,11 @@ Run isolated menu tests with `python3 -m pytest backend/tests/test_menu.py -v`.
 
 ## Shopping cart
 
-The cart uses the shared bearer authentication dependency to resolve the customer.
-Each customer can have one active cart, and all items in that cart must belong
-to the same restaurant. Adding an item requires an active restaurant and an
-available item. Customers can still view or clear a cart if its restaurant
-becomes inactive.
+The cart uses bearer authentication to identify the customer. Each customer
+can have one active cart, and all items must come from the same restaurant.
+Adding an item requires an active restaurant and an available menu item.
 
-`CartService` reads the restaurant's menu using `get_menu(..., require_active=True)`
-on add and uses current menu prices to calculate the response totals. Viewing a
-cart uses the regular menu lookup so pricing can still be returned after
-restaurant deactivation. Removing the last item or clearing the cart resets
-its restaurant. `CartRepository` persists cart records in
-`backend/app/data/carts.json`. The file is created on the first write.
-
-The [root README](../README.md#shopping-cart) lists request examples and
-responses. Run cart tests from the repository root:
-
-```bash
-python -m pytest backend/tests/test_cart_model.py backend/tests/test_cart_repository.py backend/tests/test_cart_service.py backend/tests/test_cart_routes.py
-```
+`CartService` calculates totals using current menu prices. Customers can
+still view their cart after the restaurant is deactivated. Removing the last
+item or clearing the cart resets its restaurant association. `CartRepository`
+stores carts in `backend/app/data/carts.json`, which it creates on the first write.
