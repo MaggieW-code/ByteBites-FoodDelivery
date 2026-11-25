@@ -8,6 +8,7 @@ from backend.app.models.menu_model import CreateMenuItem, Menu, MenuItem, MenuIt
 from backend.app.models.restaurant_model import RestaurantId
 from backend.app.services.menu_service import (
     MenuItemNotFoundError,
+    MenuReadError,
     MenuRestaurantNotFoundError,
 )
 
@@ -26,7 +27,10 @@ MenuItemIdPath = Annotated[MenuItemId, PathParameter(description="Menu item ID, 
         "Retrieve a restaurant's persisted menu and items. Existing restaurants without items "
         "return an empty menu. Prices are decimal strings in the menu currency."
     ),
-    responses={404: {"description": "Restaurant not found"}},
+    responses={
+        404: {"description": "Restaurant not found"},
+        500: {"description": "Menu or restaurant data could not be read"},
+    },
 )
 def restaurant_menu(
     restaurant_id: RestaurantIdPath,
@@ -35,6 +39,8 @@ def restaurant_menu(
         return menu_service.get_menu(restaurant_id)
     except MenuRestaurantNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
+    except MenuReadError as error:
+        raise HTTPException(status_code=500, detail="Unable to read menu data") from error
 
 
 @router.post(

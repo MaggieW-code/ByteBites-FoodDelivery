@@ -321,3 +321,23 @@ def test_update_menu_bad_id_length_returns_422(client: TestClient, menus_file: P
 @pytest.mark.parametrize("bad_id", ["rest_01", "rest_0001", "r"])
 def test_get_menu_bad_restaurant_id_length_returns_422(client: TestClient, bad_id: str) -> None:
     assert client.get(f"/restaurants/{bad_id}/menu").status_code == 422
+
+
+@pytest.mark.parametrize(
+    "broken_menus",
+    [
+        "not json",  # file is not valid JSON
+        '{"restaurant_id": "rest_001"}',  # file is not a list
+        '[{"restaurant_id": "rest_001", "currency": "CAD", "items": [{"id": "item_001"}]}]',  # item missing fields
+    ],
+)
+def test_get_menu_unreadable_menu_data_returns_500_with_detail(
+    client: TestClient, menus_file: Path, broken_menus: str
+) -> None:
+    # Regression: MenuReadError used to escape the route as an unexplained 500
+    menus_file.write_text(broken_menus, encoding="utf-8")
+
+    response = client.get("/restaurants/rest_001/menu")
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Unable to read menu data"}

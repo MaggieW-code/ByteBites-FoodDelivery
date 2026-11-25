@@ -12,7 +12,7 @@ business logic and no file access.
 |---|---|---|---|
 | `health.py` | `GET /health` | none | none |
 | `restaurant_routes.py` | `GET /restaurants?cuisine=`, `GET /restaurants/{restaurant_id}`, `POST /restaurants` (201), `PATCH /restaurants/{restaurant_id}` | `RestaurantService` | `RestaurantNotFoundError` → 404 |
-| `menu_routes.py` | `GET /restaurants/{restaurant_id}/menu`, `POST /restaurants/{restaurant_id}/menu` (201), `PATCH /restaurants/{restaurant_id}/menu/{menu_item_id}` | `MenuService` | `MenuRestaurantNotFoundError` → 404, `MenuItemNotFoundError` → 404 |
+| `menu_routes.py` | `GET /restaurants/{restaurant_id}/menu`, `POST /restaurants/{restaurant_id}/menu` (201), `PATCH /restaurants/{restaurant_id}/menu/{menu_item_id}` | `MenuService` | `MenuRestaurantNotFoundError` → 404, `MenuItemNotFoundError` → 404, `MenuReadError` → 500 (`GET` menu) |
 | `auth_routes.py` | `POST /auth/sign-in`, `GET /auth/me`, `POST /auth/sign-out` (204, also for unknown tokens) | `AuthService` | `InvalidCredentialsError` → 401 with `WWW-Authenticate: Bearer`, `AccountDeactivatedError` → 403. Token errors come from `dependencies/auth.py` |
 | `cart_auth.py` | Customer identity dependency for all cart routes | Shared `require_role("customer")` dependency | Missing, invalid, or expired token → 401. Deactivated account or wrong role → 403. |
 
