@@ -31,6 +31,15 @@ class SessionRepository:
         self.save_all(remaining)
         return True
 
+    def delete_by_account_id(self, account_id: str) -> int:
+        """Sign an account out everywhere. Returns how many sessions were removed."""
+        sessions = self.load_all()
+        remaining = [session for session in sessions if session.account_id != account_id]
+        removed_count = len(sessions) - len(remaining)
+        if removed_count:
+            self.save_all(remaining)
+        return removed_count
+
     def load_all(self) -> list[Session]:
         try:
             return sessions_adapter.validate_python(self.store.load())

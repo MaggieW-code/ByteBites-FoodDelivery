@@ -196,7 +196,7 @@ def test_non_customer_cannot_open_cart(cart_api, cart_accounts):
 def test_deactivated_customer_cannot_open_cart(authenticated_api):
     client, repository = authenticated_api
     get_account_service().deactivate_account("cust_001")
-    assert client.post("/cart").status_code == 403
+    assert client.post("/cart").status_code == 401
     assert repository.get_all() == []
 
 

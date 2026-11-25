@@ -81,8 +81,23 @@ def auth_service(
 
 
 @pytest.fixture
-def account_service(account_repository: AccountRepository) -> AccountService:
-    return AccountService(account_repository)
+def account_service(account_repository: AccountRepository, session_repository: SessionRepository) -> AccountService:
+    return AccountService(account_repository, session_repository)
+
+
+@pytest.fixture
+def deactivate_in_storage(account_repository: AccountRepository) -> Callable[[str], None]:
+    """Mark an account inactive without signing it out, as if it were switched off outside AccountService.
+
+    `AccountService.deactivate_account` also ends the account's sessions (so old tokens get 401).
+    This keeps a live session for an inactive account, to test the 403 backstop in `resolve_token`.
+    """
+
+    def _deactivate(account_id: str) -> None:
+        stored = account_repository.get_by_id(account_id)
+        account_repository.update(stored.model_copy(update={"is_active": False}))
+
+    return _deactivate
 
 
 @pytest.fixture

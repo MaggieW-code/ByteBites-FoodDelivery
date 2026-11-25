@@ -7,7 +7,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.repositories.accounts.account_repository import AccountRepository
-from backend.app.services.accounts.account_service import AccountService
 from backend.app.services.accounts.password_hashing import verify_password
 from backend.tests.auth.auth_helpers import TEST_PASSWORD
 
@@ -163,10 +162,10 @@ def test_profile_for_a_non_customer_is_403(client: TestClient, auth_headers: Aut
 
 
 def test_profile_for_a_deactivated_customer_is_403(
-    client: TestClient, auth_headers: AuthHeaders, account_service: AccountService
+    client: TestClient, auth_headers: AuthHeaders, deactivate_in_storage: Callable[[str], None]
 ) -> None:
     headers = auth_headers("cara@example.com")
-    account_service.deactivate_account("cust_001")
+    deactivate_in_storage("cust_001")
 
     assert client.get("/customers/me", headers=headers).status_code == 403
 
@@ -327,3 +326,37 @@ def test_address_routes_need_a_customer(client: TestClient, auth_headers: AuthHe
 
     assert getattr(client, method)(path, **extra).status_code == 401
     assert getattr(client, method)(path, headers=auth_headers("omar@example.com"), **extra).status_code == 403
+
+
+# --- C5: deactivate ---
+
+
+def test_deactivate_returns_204_and_signs_the_customer_out_everywhere(client: TestClient, auth_headers: AuthHeaders) -> None:
+    laptop = auth_headers("cara@example.com")
+    phone = auth_headers("cara@example.com")
+
+    assert client.post("/customers/me/deactivate", headers=laptop).status_code == 204
+
+    assert client.get("/customers/me", headers=laptop).status_code == 401
+    assert client.get("/customers/me", headers=phone).status_code == 401
+
+
+def test_deactivated_customer_cannot_sign_in_again(client: TestClient, auth_headers: AuthHeaders) -> None:
+    client.post("/customers/me/deactivate", headers=auth_headers("cara@example.com"))
+
+    response = client.post("/auth/sign-in", json={"email": "cara@example.com", "password": TEST_PASSWORD})
+
+    assert response.status_code == 403
+
+
+def test_deactivating_one_customer_leaves_others_signed_in(client: TestClient, auth_headers: AuthHeaders) -> None:
+    owner = auth_headers("omar@example.com")
+
+    client.post("/customers/me/deactivate", headers=auth_headers("cara@example.com"))
+
+    assert client.get("/auth/me", headers=owner).status_code == 200
+
+
+def test_deactivate_needs_a_customer(client: TestClient, auth_headers: AuthHeaders) -> None:
+    assert client.post("/customers/me/deactivate").status_code == 401
+    assert client.post("/customers/me/deactivate", headers=auth_headers("omar@example.com")).status_code == 403

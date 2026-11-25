@@ -10,7 +10,7 @@ FastAPI dependencies that run before a route's own code. They answer "who is cal
 | File | Dependency | Returns | Errors → status |
 |---|---|---|---|
 | `auth.py` | `get_auth_service` | `AuthService` built from `config.py` paths and token lifetime | none |
-| | `get_account_service` | `AccountService` built from the `config.py` accounts path | none |
+| | `get_account_service` | `AccountService` built from the `config.py` accounts and sessions paths | none |
 | | `get_bearer_token` | The token from `Authorization: Bearer <token>` | Missing header, wrong scheme, or empty token → 401 |
 | | `get_current_account` | `AuthenticatedAccount` for the token | `InvalidTokenError`, `SessionExpiredError` → 401; `AccountDeactivatedError` → 403 |
 | | `require_role(*roles)` | A dependency that passes only those roles and returns the account | Wrong role → 403 |

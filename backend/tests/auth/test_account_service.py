@@ -10,6 +10,7 @@ from backend.app.models.accounts.account_model import (
 )
 from backend.app.models.accounts.auth_model import SignInRequest
 from backend.app.repositories.accounts.account_repository import AccountRepository
+from backend.app.repositories.accounts.session_repository import SessionRepository
 from backend.app.services.accounts.account_service import (
     AccountNotFoundError,
     AccountService,
@@ -18,6 +19,7 @@ from backend.app.services.accounts.account_service import (
 )
 from backend.app.services.accounts.auth_service import AuthService
 from backend.app.services.accounts.password_hashing import verify_password
+from backend.tests.auth.auth_helpers import TEST_PASSWORD
 
 
 def make_registration(email: str = "nina@example.com") -> AccountCreationRequest:
@@ -155,3 +157,23 @@ def test_unknown_address_raises(account_service: AccountService, method: str) ->
 def test_addresses_are_only_for_customers(account_service: AccountService) -> None:
     with pytest.raises(AccountNotFoundError):
         account_service.add_address("ownr_001", HOME)
+
+
+# --- deactivate (C5) ---
+
+
+def test_deactivate_marks_the_account_inactive_and_ends_its_sessions(
+    account_service: AccountService,
+    auth_service: AuthService,
+    account_repository: AccountRepository,
+    session_repository: SessionRepository,
+) -> None:
+    auth_service.sign_in(SignInRequest(email="cara@example.com", password=TEST_PASSWORD))
+    omar_token = auth_service.sign_in(SignInRequest(email="omar@example.com", password=TEST_PASSWORD)).access_token
+
+    account = account_service.deactivate_account("cust_001")
+
+    assert account.is_active is False
+    assert account_repository.get_by_id("cust_001").is_active is False
+    assert [session.account_id for session in session_repository.load_all()] == ["ownr_001"]
+    assert auth_service.resolve_token(omar_token).id == "ownr_001"

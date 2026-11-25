@@ -126,3 +126,16 @@ def remove_my_address(
         account_service.remove_address(customer.id, address_id)
     except DeliveryAddressNotFoundError as error:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(error)) from error
+
+
+@router.post(
+    "/me/deactivate",
+    status_code=status.HTTP_204_NO_CONTENT,
+    description=(
+        "Deactivate the signed-in customer's account and sign it out everywhere. "
+        "Its tokens stop working (401) and signing in again is refused (403)."
+    ),
+    responses=CUSTOMER_AUTH_RESPONSES,
+)
+def deactivate_my_account(customer: CurrentCustomer, account_service: AccountServiceDependency) -> None:
+    account_service.deactivate_account(customer.id)
