@@ -14,8 +14,9 @@ business logic and no file access.
 | `restaurant_routes.py` | `GET /restaurants?cuisine=`, `GET /restaurants/{restaurant_id}`, `POST /restaurants` (201), `PATCH /restaurants/{restaurant_id}` | `RestaurantService` | `RestaurantNotFoundError` → 404 |
 | `menu_routes.py` | `GET /restaurants/{restaurant_id}/menu`, `POST /restaurants/{restaurant_id}/menu` (201), `PATCH /restaurants/{restaurant_id}/menu/{menu_item_id}` | `MenuService` | `MenuRestaurantNotFoundError` → 404, `MenuItemNotFoundError` → 404 |
 | `auth_routes.py` | `POST /auth/sign-in`, `GET /auth/me`, `POST /auth/sign-out` (204, also for unknown tokens) | `AuthService` | `InvalidCredentialsError` → 401 with `WWW-Authenticate: Bearer`, `AccountDeactivatedError` → 403. Token errors come from `dependencies/auth.py` |
+| `cart_auth.py` | Customer identity dependency for all cart routes | Shared `require_role("customer")` dependency | Missing, invalid, or expired token → 401. Deactivated account or wrong role → 403. |
 
-Each file exposes a `router` that `main.py` registers with `app.include_router`.
+Each `*_routes.py` file and `health.py` exposes a `router` that `main.py` registers with `app.include_router`.
 
 ## How it connects
 

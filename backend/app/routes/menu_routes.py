@@ -1,17 +1,14 @@
-from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException
 from fastapi import Path as PathParameter
 
+from backend.app.menu_dependencies import menu_service
 from backend.app.models.menu_model import CreateMenuItem, Menu, MenuItem, MenuItemId, UpdateMenuItem
 from backend.app.models.restaurant_model import RestaurantId
-from backend.app.repositories.menu_repository import MenuRepository
-from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.menu_service import (
     MenuItemNotFoundError,
     MenuRestaurantNotFoundError,
-    MenuService,
 )
 
 router = APIRouter()
@@ -20,11 +17,6 @@ router = APIRouter()
 # (Writing `restaurant_id: RestaurantId = PathParameter(...)` would silently drop the rule.)
 RestaurantIdPath = Annotated[RestaurantId, PathParameter(description="Restaurant ID, for example rest_001")]
 MenuItemIdPath = Annotated[MenuItemId, PathParameter(description="Menu item ID, for example item_001")]
-data_directory = Path(__file__).resolve().parents[1] / "data"
-menu_service = MenuService(
-    MenuRepository(data_directory / "menus.json"),
-    RestaurantRepository(data_directory / "restaurants.json"),
-)
 
 
 @router.get(
