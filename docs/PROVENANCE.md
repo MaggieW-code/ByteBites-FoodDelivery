@@ -503,4 +503,4 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   regression test with three kinds of broken menu data, and updated the routes README.
 - Validation: Ran the full pytest suite (380 passed). Confirmed the new test fails without the
   handler. No new ruff warnings in the changed files.
-- PR: TBD
+- PR: 155
