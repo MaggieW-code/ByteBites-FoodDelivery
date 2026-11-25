@@ -50,6 +50,12 @@ def sign_in(request: SignInRequest, auth_service: AuthServiceDependency) -> Toke
 def me(
     account: Annotated[AuthenticatedAccount, Depends(get_current_account)], account_service: AccountServiceDependency
 ) -> Account:
+    """Identity endpoint: "who am I?" for any signed-in role.
+
+    Overlaps with `GET /customers/me` for customers on purpose. The frontend calls this right
+    after sign-in to learn the caller's role, and it is the only profile route owners and
+    admins have. Role resources (`/customers/me`, later `/owners/me`) hold the full profiles.
+    """
     return account_service.get_account(account.id)
 
 

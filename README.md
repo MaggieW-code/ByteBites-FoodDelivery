@@ -159,6 +159,9 @@ Parcel serves the app locally and prints the URL. See
   in the body is ignored: this endpoint only creates customers. Returns
   `409` if the email is already registered (emails are trimmed and
   lowercased first). Sign in afterwards with `POST /auth/sign-in`.
+- `GET /customers/me` — the signed-in customer's own profile (same shape as
+  above). Send `Authorization: Bearer <token>`. Returns `401` without a valid
+  token and `403` for a non-customer or a deactivated account.
 
 Request bodies that fail validation return `422`.
 
