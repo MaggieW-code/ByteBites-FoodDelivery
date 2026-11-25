@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from backend.app.models.account_model import StoredCustomerAccount, StoredRestaurantAccount
-from backend.app.repositories.account_repository import AccountRepository
+from backend.app.config import DATA_DIRECTORY
+from backend.app.models.accounts.account_model import StoredCustomerAccount, StoredRestaurantAccount
+from backend.app.repositories.accounts.account_repository import AccountRepository
 from backend.app.repositories.json_list_store import DataFileMalformedError, DataFileMissingError
 
 
@@ -12,7 +13,7 @@ def make_customer(account_id: str = "cust_009", email: str = "new@example.com") 
         id=account_id,
         full_name="New Customer",
         email=email,
-        phone="250-555-0199",
+        phone="+12505550199",
         is_active=True,
         password_hash="scrypt$salt$hash",
     )
@@ -87,3 +88,10 @@ def test_malformed_accounts_file_raises(tmp_path: Path, contents: str) -> None:
 
     with pytest.raises(DataFileMalformedError):
         AccountRepository(accounts_file).get_by_id("cust_001")
+
+
+def test_seeded_accounts_file_still_loads() -> None:
+    """Guards the demo data: a model rule that the seed file breaks fails here, not when the app starts."""
+    accounts = AccountRepository(DATA_DIRECTORY / "accounts.json").load_all()
+
+    assert {account.role for account in accounts} == {"customer", "restaurant_owner"}

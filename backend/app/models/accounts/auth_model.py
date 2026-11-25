@@ -1,8 +1,14 @@
-from typing import Literal
+from typing import Annotated, Literal, TypeAlias
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, SecretStr
+from pydantic import AwareDatetime, BaseModel, ConfigDict, SecretStr, StringConstraints
 
-from backend.app.models.account_model import EightCharId, Email, NonEmptyText, Role
+from backend.app.models.accounts.account_model import EightCharId, NonEmptyText, Role
+
+# For lookups only (sign-in): no format check, so an address stored under older rules can still sign in,
+# and a malformed one gets the same 401 as an unknown one instead of a 422. Registration uses Email.
+LoginEmail: TypeAlias = Annotated[
+    str, StringConstraints(strict=True, strip_whitespace=True, to_lower=True, min_length=1, max_length=254)
+]
 
 
 class AuthenticatedAccount(BaseModel):
@@ -25,7 +31,7 @@ class Session(BaseModel):
 
 
 class SignInRequest(BaseModel):
-    email: Email
+    email: LoginEmail
     password: SecretStr
 
 

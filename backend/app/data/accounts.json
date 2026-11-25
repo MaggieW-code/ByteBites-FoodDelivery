@@ -1,6 +1,32 @@
 [
-  {"id": "cust_001", "full_name": "Demo Customer", "email": "customer@bytebites.test", "phone": "250-555-0100",
-   "role": "customer", "is_active": true, "delivery_addresses": [], "password_hash": "scrypt$16384$8$1$FtaflNWFheH7df7YGGS0Mw==$Ya04qwsIesGq0yqGgnIpeI1N3mrdsVuf8HV3Ql7Sz9vj6cOIimAf0YRYP9GZLffPGnRr60Cf0gHAI3buQo6Vfw=="},
-  {"id": "ownr_001", "full_name": "Demo Owner", "email": "owner@bytebites.test", "phone": "250-555-0101",
-   "role": "restaurant_owner", "is_active": true, "owned_restaurant_ids": [], "password_hash": "scrypt$16384$8$1$16isCA+vuQHT0ss9LyrmFg==$ij+ch1UY5QRszIgWBlfbWmAeKE/mKUiK2lHA/ehLnMkd16ptHea1g6fMg6VYlE9pWE8BLXzwPmjWKUlOPSI46w=="}
+  {
+    "password_hash": "scrypt$16384$8$1$FtaflNWFheH7df7YGGS0Mw==$Ya04qwsIesGq0yqGgnIpeI1N3mrdsVuf8HV3Ql7Sz9vj6cOIimAf0YRYP9GZLffPGnRr60Cf0gHAI3buQo6Vfw==",
+    "id": "cust_001",
+    "full_name": "Demo Customer",
+    "email": "customer@example.com",
+    "phone": "+12505550100",
+    "is_active": true,
+    "role": "customer",
+    "delivery_addresses": []
+  },
+  {
+    "password_hash": "scrypt$16384$8$1$16isCA+vuQHT0ss9LyrmFg==$ij+ch1UY5QRszIgWBlfbWmAeKE/mKUiK2lHA/ehLnMkd16ptHea1g6fMg6VYlE9pWE8BLXzwPmjWKUlOPSI46w==",
+    "id": "ownr_001",
+    "full_name": "Demo Owner",
+    "email": "owner@example.com",
+    "phone": "+12505550101",
+    "is_active": true,
+    "role": "restaurant_owner",
+    "owned_restaurant_ids": []
+  },
+  {
+    "password_hash": "scrypt$16384$8$1$TFgTKFW1t9k2AuMHVySY2A==$iQs5rihk3zHaYzVtfzGB8BLS49AUJTKeIJ8Hj7Zsg1ebnHE2PIAiK919J8OF8fvRdhdqcdGeWMiQ28tm6IBGKA==",
+    "id": "6faa9f10",
+    "full_name": "string",
+    "email": "mais@example.com",
+    "phone": "+12502571234",
+    "is_active": true,
+    "role": "customer",
+    "delivery_addresses": []
+  }
 ]

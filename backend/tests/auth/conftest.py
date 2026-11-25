@@ -8,12 +8,13 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app.dependencies.auth import get_auth_service
-from backend.app.models.auth_model import SignInRequest
-from backend.app.repositories.account_repository import AccountRepository
-from backend.app.repositories.session_repository import SessionRepository
-from backend.app.services.auth_service import AuthService
-from backend.app.services.password_hashing import hash_password
+from backend.app.dependencies.auth import get_account_service, get_auth_service
+from backend.app.models.accounts.auth_model import SignInRequest
+from backend.app.repositories.accounts.account_repository import AccountRepository
+from backend.app.repositories.accounts.session_repository import SessionRepository
+from backend.app.services.accounts.account_service import AccountService
+from backend.app.services.accounts.auth_service import AuthService
+from backend.app.services.accounts.password_hashing import hash_password
 from backend.tests.auth.auth_helpers import TEST_PASSWORD, TOKEN_LIFETIME, FakeClock
 from main import app
 
@@ -26,7 +27,7 @@ def test_password_hash() -> str:
 
 @pytest.fixture
 def account_records(test_password_hash: str) -> list[dict[str, Any]]:
-    shared = dict(phone="250-555-0100", password_hash=test_password_hash)
+    shared = dict(phone="+12505550100", password_hash=test_password_hash)
     return [
         dict(id="cust_001", full_name="Cara Customer", email="cara@example.com", role="customer", is_active=True) | shared,
         dict(id="cust_002", full_name="Dana Inactive", email="dana@example.com", role="customer", is_active=False) | shared,
@@ -80,8 +81,16 @@ def auth_service(
 
 
 @pytest.fixture
-def client(client: TestClient, monkeypatch: pytest.MonkeyPatch, auth_service: AuthService) -> TestClient:
+def account_service(account_repository: AccountRepository) -> AccountService:
+    return AccountService(account_repository)
+
+
+@pytest.fixture
+def client(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, auth_service: AuthService, account_service: AccountService
+) -> TestClient:
     monkeypatch.setitem(app.dependency_overrides, get_auth_service, lambda: auth_service)
+    monkeypatch.setitem(app.dependency_overrides, get_account_service, lambda: account_service)
     return client
 
 

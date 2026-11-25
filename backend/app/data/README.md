@@ -38,5 +38,5 @@ For local demos and the TA only. Never reuse these passwords anywhere real.
 
 | Email | Password | Role |
 |---|---|---|
-| `customer@bytebites.test` | `demo-password-123` | customer |
-| `owner@bytebites.test` | `owner-password-1234` | restaurant_owner |
+| `customer@example.com` | `demo-password-123` | customer |
+| `owner@example.com` | `owner-password-1234` | restaurant_owner |
