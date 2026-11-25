@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { clearAccessToken, getAccessToken, getCurrentAccount } from "../api/accounts";
-import { ApiError } from "../api/client";
+import { getCurrentAccount } from "../api/accounts";
+import { ApiError, clearAccessToken, getAccessToken } from "../api/client";
 import type { Account } from "../types/account";
 
 export type CurrentAccountState =
@@ -17,7 +17,7 @@ export function useCurrentAccount(): CurrentAccountState {
   useEffect(() => {
     if (!token) return;
     const controller = new AbortController();
-    getCurrentAccount(token, controller.signal)
+    getCurrentAccount(controller.signal)
       .then((account) => setState({ status: "signed-in", account }))
       .catch((error) => {
         if (controller.signal.aborted) return;

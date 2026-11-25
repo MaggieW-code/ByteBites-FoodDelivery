@@ -10,8 +10,8 @@ pages and components call a typed function instead of `fetch`.
 | File | Functions → endpoint | Used by |
 |---|---|---|
 | `restaurants.ts` | `fetchRestaurants(cuisine?)` → `GET /restaurants`, `fetchRestaurantById` → `GET /restaurants/{id}`, `createRestaurant` → `POST /restaurants`, `updateRestaurant` → `PATCH /restaurants/{id}` | `DiscoverView`, `RestaurantDetailsView`, `CreateRestaurantForm`, `UpdateRestaurantForm` |
-| `client.ts` | `API_BASE_URL` (env `API_BASE_URL`, default `http://127.0.0.1:8000`), `request<T>()` (JSON, `response.ok` check, throws `ApiError`), `ApiError` (`status`, `detail`, `fieldErrors` for 422) | `accounts.ts` |
-| `accounts.ts` | `registerCustomer` → `POST /customers`, `signIn` → `POST /auth/sign-in` (stores the token in `localStorage`), `getCurrentAccount(token)` → `GET /auth/me`, `signOut` → `POST /auth/sign-out` (always forgets the token, even if the backend is down), `getAccessToken`, `clearAccessToken` | `AccountView`, `useCurrentAccount`, `GenericLayout` |
+| `client.ts` | `API_BASE_URL` (env `API_BASE_URL`, default `http://127.0.0.1:8000`); the saved token (`getAccessToken`, `saveAccessToken`, `clearAccessToken`, in `localStorage`); `request<T>()` (JSON, `response.ok` check, throws `ApiError`; with `isAuthenticated: true` it sends the token, and a 401 clears it and fires `SESSION_EXPIRED_EVENT`); `ApiError` (`status`, `detail`, `fieldErrors` for 422) | `accounts.ts`, `useCurrentAccount`, `GenericLayout` |
+| `accounts.ts` | `registerCustomer` → `POST /customers`, `signIn` → `POST /auth/sign-in` (saves the token), `getCurrentAccount` → `GET /auth/me`, `signOut` → `POST /auth/sign-out` (always forgets the token), `getMyProfile` / `updateMyProfile` → `GET` / `PATCH /customers/me`, `addMyAddress` / `updateMyAddress` / `removeMyAddress` → `/customers/me/addresses`, `deactivateMyAccount` → `POST /customers/me/deactivate` (then forgets the token) | `AccountView`, `ProfileView`, `useCurrentAccount`, `useMyProfile`, `GenericLayout` |
 | `menus.ts` | `fetchMenu(restaurantId, signal?)` → `GET /restaurants/{id}/menu` | `RestaurantMenuView` |
 
 ## How it connects

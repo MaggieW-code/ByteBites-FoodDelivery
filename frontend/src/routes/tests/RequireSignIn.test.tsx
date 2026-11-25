@@ -56,7 +56,7 @@ describe("RequireSignIn", () => {
 
     expect(screen.getByRole("status").textContent).toBe("Checking your sign-in…");
     expect(await screen.findByText("Discover page")).toBeTruthy();
-    expect(mockGetCurrentAccount.mock.calls[0][0]).toBe("good");
+    expect(mockGetCurrentAccount).toHaveBeenCalledOnce();
   });
 
   it.each([401, 403])("a token the backend rejects (%i) is forgotten and you go to sign in", async (status) => {

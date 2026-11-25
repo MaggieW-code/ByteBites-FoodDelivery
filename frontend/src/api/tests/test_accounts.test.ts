@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { getAccessToken, getCurrentAccount, registerCustomer, signIn, signOut } from "../accounts";
-import { API_BASE_URL, ApiError } from "../client";
+import { deactivateMyAccount, getCurrentAccount, registerCustomer, signIn, signOut, updateMyProfile } from "../accounts";
+import { API_BASE_URL, ApiError, getAccessToken, SESSION_EXPIRED_EVENT } from "../client";
 
 const respond = (status: number, body?: unknown) =>
   vi.fn().mockResolvedValue(new Response(body === undefined ? null : JSON.stringify(body), { status }));
@@ -56,10 +56,11 @@ describe("account API", () => {
   });
 
   it("current account sends the token as a bearer header", async () => {
+    localStorage.setItem("bytebites.access_token", "abc");
     const fetchMock = respond(200, { id: "cust_001", role: "customer" });
     vi.stubGlobal("fetch", fetchMock);
 
-    await getCurrentAccount("abc");
+    await getCurrentAccount();
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe(`${API_BASE_URL}/auth/me`);
@@ -83,6 +84,54 @@ describe("account API", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
 
     await signOut();
+
+    expect(getAccessToken()).toBeNull();
+  });
+
+  it("a 401 on a signed-in request forgets the token and announces the session expired", async () => {
+    localStorage.setItem("bytebites.access_token", "expired");
+    vi.stubGlobal("fetch", respond(401, { detail: "Token expired" }));
+    const onExpired = vi.fn();
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+
+    const error = await updateMyProfile({ full_name: "X" }).catch((caught) => caught);
+
+    window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    expect(error.status).toBe(401);
+    expect(getAccessToken()).toBeNull();
+    expect(onExpired).toHaveBeenCalledOnce();
+  });
+
+  it("a 401 on sign-in is a wrong password, not an expired session", async () => {
+    vi.stubGlobal("fetch", respond(401, { detail: "Invalid email or password" }));
+    const onExpired = vi.fn();
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+
+    await signIn({ email: "cara@example.com", password: "wrong" }).catch(() => undefined);
+
+    window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    expect(onExpired).not.toHaveBeenCalled();
+  });
+
+  it("profile changes send only the changed fields with the token", async () => {
+    localStorage.setItem("bytebites.access_token", "abc");
+    const fetchMock = respond(200, { id: "cust_001" });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await updateMyProfile({ phone: "250-555-0199" });
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(`${API_BASE_URL}/customers/me`);
+    expect(init.method).toBe("PATCH");
+    expect(init.headers.Authorization).toBe("Bearer abc");
+    expect(JSON.parse(init.body)).toEqual({ phone: "250-555-0199" });
+  });
+
+  it("deactivating forgets the token", async () => {
+    localStorage.setItem("bytebites.access_token", "abc");
+    vi.stubGlobal("fetch", respond(204));
+
+    await deactivateMyAccount();
 
     expect(getAccessToken()).toBeNull();
   });

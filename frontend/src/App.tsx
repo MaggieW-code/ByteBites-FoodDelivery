@@ -3,6 +3,7 @@ import { GenericLayout } from "./layouts/generic_layout/GenericLayout";
 import { Discover } from "./pages/DiscoverView";
 import { Landing } from "./pages/LandingView";
 import { Account } from "./pages/AccountView";
+import { Profile } from "./pages/ProfileView";
 import { RequireSignIn } from "./routes/RequireSignIn";
 import { RestaurantDetails } from "./pages/RestaurantDetailsView";
 import { CreateRestaurantForm } from "./components/CreateRestaurantForm";
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/account" element={<Account />} />
           <Route element={<RequireSignIn />}>
             <Route path="/" element={<Landing />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/restaurants" element={<Discover />} />
             <Route path="/restaurants/:restaurantId" element={<RestaurantDetailsRoute />} />
             <Route path="/manage/restaurants" element={
