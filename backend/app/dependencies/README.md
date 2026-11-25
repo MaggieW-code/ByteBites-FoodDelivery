@@ -34,3 +34,5 @@ Every 401 carries `WWW-Authenticate: Bearer`. `bearer_scheme` (`HTTPBearer`) als
 - Catch only named domain errors; never `Exception`.
 
 orders.py builds the order repository and service using ORDERS_PATH.
+
+commerce.py builds the cart and checkout services. Both use the configured menu store and checkout shares the order repository with the retrieval routes.

@@ -5,11 +5,12 @@ from unittest.mock import Mock
 
 import pytest
 
-from backend.app.models.menu_model import Menu, MenuItem
+from backend.app.models.menu_model import Menu, MenuListItem
 from backend.app.repositories.order_repository import OrderRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.checkout_service import (
     CheckoutCart,
+    CheckoutCartNotFoundError,
     CheckoutCarts,
     CheckoutConflictError,
     CheckoutService,
@@ -32,7 +33,7 @@ def checkout(tmp_path):
         restaurant_id="rest_001",
         currency="CAD",
         items=[
-            MenuItem(
+            MenuListItem(
                 id="item_001",
                 name="Burger",
                 description="",
@@ -53,7 +54,7 @@ def test_checkout_prices_current_menu_and_persists_before_closing(checkout):
     service, session = checkout
     session.cart = replace(session.cart, items=(("item_001", 2), ("item_002", 1)))
     service.menus.get_menu.return_value.items.append(
-        MenuItem(id="item_002", name="Free sample", description="", price="0", is_available=True)
+        MenuListItem(id="item_002", name="Free sample", description="", price="0", is_available=True)
     )
     session.close_cart.side_effect = lambda: assert_order_persisted(service.orders)
 
@@ -100,7 +101,7 @@ def test_missing_or_foreign_cart_is_rejected(checkout, customer_id):
     service, session = checkout
     session.cart = None if customer_id is None else replace(session.cart, customer_id=customer_id)
 
-    with pytest.raises(CheckoutUnavailableError, match="Cart not found"):
+    with pytest.raises(CheckoutCartNotFoundError, match="Cart not found"):
         place_order(service)
 
     assert service.orders.get_all() == []
@@ -119,7 +120,7 @@ def test_missing_or_inactive_restaurant_is_rejected(checkout, restaurant):
     session.close_cart.assert_not_called()
 
 
-@pytest.mark.parametrize("problem", ["missing", "unavailable", "negative_price"])
+@pytest.mark.parametrize("problem", ["missing", "unavailable", "negative_price", "fractional_cent_price"])
 def test_invalid_menu_item_leaves_cart_open(checkout, problem):
     service, session = checkout
     menu = service.menus.get_menu.return_value
@@ -127,8 +128,10 @@ def test_invalid_menu_item_leaves_cart_open(checkout, problem):
         menu.items.clear()
     elif problem == "unavailable":
         menu.items[0].is_available = False
-    else:
+    elif problem == "negative_price":
         menu.items[0].price = Decimal("-1")
+    else:
+        menu.items[0].price = Decimal("13.751")
 
     with pytest.raises(CheckoutUnavailableError):
         place_order(service)

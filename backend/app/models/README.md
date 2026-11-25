@@ -73,3 +73,5 @@ routes ──► services ──► repositories ──► data/
 - Not yet true: the menu request models skip the `Request` suffix, `Menu` /
   `MenuListItem` have no field constraints, and `price` is not `strict` (so a decimal
   string like `"14.99"` is accepted).
+
+checkout_model.py defines the checkout request. CartService passes the locked CheckoutCart snapshot from cart_model.py to checkout.

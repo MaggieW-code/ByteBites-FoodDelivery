@@ -36,3 +36,5 @@ workflow. Services can be tested without HTTP or real files.
 - No file paths, no `open`, no `json`.
 - Not yet true: services convert repository dicts with `Model(**record)`;
   `update_restaurant` raises `ValueError` and returns `None` for not-found.
+
+CheckoutService reads current menu prices, handles menu read errors, and saves the order before closing the cart.

@@ -1,30 +1,27 @@
 from contextlib import AbstractContextManager
-from dataclasses import dataclass
 from decimal import Decimal
 from typing import Protocol
 from uuid import NAMESPACE_URL, uuid5
 
 from pydantic import ValidationError
 
+from backend.app.models.cart_model import CheckoutCart
 from backend.app.models.order_model import Order, OrderItem
 from backend.app.repositories.order_repository import OrderRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
-from backend.app.services.menu_service import MenuService
+from backend.app.services.menu_service import MenuReadError, MenuRestaurantNotFoundError, MenuService
 
 
 class CheckoutUnavailableError(Exception):
     """The requested cart, restaurant, or menu item cannot be checked out."""
 
 
+class CheckoutCartNotFoundError(CheckoutUnavailableError):
+    """The selected cart could not be found for the authenticated customer."""
+
+
 class CheckoutConflictError(Exception):
     """The cart is invalid or has changed since its order was saved."""
-
-
-@dataclass(frozen=True)
-class CheckoutCart:
-    customer_id: str
-    restaurant_id: str | None
-    items: tuple[tuple[str, int], ...]
 
 
 class CheckoutSession(Protocol):
@@ -37,9 +34,7 @@ class CheckoutSession(Protocol):
 
 
 class CheckoutCarts(Protocol):
-    def checkout_session(
-        self, customer_id: str, cart_id: str
-    ) -> AbstractContextManager[CheckoutSession]:
+    def checkout_session(self, customer_id: str, cart_id: str) -> AbstractContextManager[CheckoutSession]:
         """Hold the selected active cart stable through order save and closure."""
         ...
 
@@ -68,24 +63,21 @@ class CheckoutService:
         with self.carts.checkout_session(customer_id, cart_id) as session:
             cart = session.cart
             if cart is not None and cart.customer_id != customer_id:
-                raise CheckoutUnavailableError("Cart not found")
+                raise CheckoutCartNotFoundError("Cart not found")
 
             existing = self.orders.get_by_id(order_id)
             if existing is not None:
                 if existing.customer_id != customer_id:
-                    raise CheckoutUnavailableError("Cart not found")
+                    raise CheckoutCartNotFoundError("Cart not found")
                 if cart is not None:
                     purchased_items = {item.item_id: item.quantity for item in existing.items}
-                    if (
-                        cart.restaurant_id != existing.restaurant_id
-                        or self._quantities(cart) != purchased_items
-                    ):
+                    if cart.restaurant_id != existing.restaurant_id or self._quantities(cart) != purchased_items:
                         raise CheckoutConflictError("Cart changed after its order was saved")
                     session.close_cart()
                 return existing
 
             if cart is None:
-                raise CheckoutUnavailableError("Cart not found")
+                raise CheckoutCartNotFoundError("Cart not found")
 
             order = self._create_order(order_id, cart)
             saved = self.orders.save(order)
@@ -114,7 +106,7 @@ class CheckoutService:
 
         try:
             menu = self.menus.get_menu(restaurant_id)
-        except ValidationError as error:
+        except (MenuReadError, MenuRestaurantNotFoundError, ValidationError) as error:
             raise CheckoutUnavailableError("Restaurant menu is invalid") from error
         menu_items = {item.id: item for item in menu.items}
         if menu.restaurant_id != restaurant_id or len(menu_items) != len(menu.items):
@@ -127,15 +119,17 @@ class CheckoutService:
                 raise CheckoutUnavailableError(f"Menu item '{item_id}' is unavailable")
             if not item.price.is_finite() or item.price < 0 or not item.name.strip():
                 raise CheckoutUnavailableError(f"Menu item '{item_id}' has invalid purchase details")
-            items.append(
-                OrderItem(
+            try:
+                order_item = OrderItem(
                     item_id=item.id,
                     name=item.name,
                     quantity=quantity,
                     unit_price=item.price,
                     line_total=item.price * quantity,
                 )
-            )
+            except ValidationError as error:
+                raise CheckoutUnavailableError(f"Menu item '{item_id}' has invalid purchase details") from error
+            items.append(order_item)
         return Order(
             order_id=order_id,
             customer_id=cart.customer_id,
