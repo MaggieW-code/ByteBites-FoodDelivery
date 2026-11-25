@@ -24,7 +24,11 @@ from backend.app.services.menu_service import MenuService
 def service(tmp_path):
     restaurant_path = tmp_path / "restaurants.json"
     restaurant_path.write_text(
-        json.dumps([{"id": "rest_001"}, {"id": "rest_002"}]), encoding="utf-8"
+        json.dumps([
+            {"id": "rest_001", "is_active": True},
+            {"id": "rest_002", "is_active": True},
+        ]),
+        encoding="utf-8",
     )
     menu_path = tmp_path / "menus.json"
     menu_path.write_text(

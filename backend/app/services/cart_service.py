@@ -9,7 +9,12 @@ from pydantic import TypeAdapter, ValidationError
 from backend.app.models.cart_model import Cart, CartItem, CartResponse, Money
 from backend.app.models.menu_model import MenuItem
 from backend.app.repositories.cart_repository import CartDataError, CartRepository
-from backend.app.services.menu_service import MenuReadError, MenuRestaurantNotFoundError, MenuService
+from backend.app.services.menu_service import (
+    MenuReadError,
+    MenuRestaurantInactiveError,
+    MenuRestaurantNotFoundError,
+    MenuService,
+)
 
 
 class CartServiceError(Exception):
@@ -78,7 +83,7 @@ class CartService:
             if cart.restaurant_id is not None and cart.restaurant_id != restaurant_id:
                 raise CartRestaurantMismatchError("All cart items must be from the same restaurant")
 
-            menu_items = self._menu_items(restaurant_id)
+            menu_items = self._menu_items(restaurant_id, require_active=True)
             if self._menu_item(menu_items, menu_item_id).is_available is False:
                 raise CartItemUnavailableError(f"Menu item '{menu_item_id}' is unavailable")
 
@@ -165,11 +170,15 @@ class CartService:
                 return index
         raise CartItemNotFoundError(f"Item '{menu_item_id}' is not in the cart")
 
-    def _menu_items(self, restaurant_id: str) -> dict[str, MenuItem]:
+    def _menu_items(
+        self, restaurant_id: str, *, require_active: bool = False
+    ) -> dict[str, MenuItem]:
         try:
-            menu = self.menu_service.get_menu(restaurant_id)
+            menu = self.menu_service.get_menu(restaurant_id, require_active=require_active)
         except MenuRestaurantNotFoundError:
             return {}
+        except MenuRestaurantInactiveError as error:
+            raise CartItemUnavailableError(str(error)) from error
         except MenuReadError as error:
             raise CartStorageError("Unable to read restaurant menu data") from error
         return {item.id: item for item in menu.items}

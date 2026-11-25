@@ -18,7 +18,11 @@ from main import app
 def cart_api(tmp_path, monkeypatch):
     restaurant_path = tmp_path / "restaurants.json"
     restaurant_path.write_text(
-        json.dumps([{"id": "rest_001"}, {"id": "rest_002"}]), encoding="utf-8"
+        json.dumps([
+            {"id": "rest_001", "is_active": True},
+            {"id": "rest_002", "is_active": True},
+        ]),
+        encoding="utf-8",
     )
     menu_path = tmp_path / "menus.json"
     menu_path.write_text(json.dumps([
@@ -224,6 +228,30 @@ def test_missing_items_and_conflicts(authenticated_api):
     )
     assert response.status_code == 409
     assert client.get("/cart").json() == cart
+
+
+def test_inactive_restaurant_blocks_additions_but_existing_cart_can_be_cleared(
+    authenticated_api, tmp_path
+):
+    client, repository = authenticated_api
+    url = "/cart/items?restaurant_id=rest_002"
+    item = {"menu_item_id": "item_003", "quantity": 1}
+    initial = client.post(url, json=item)
+    assert initial.status_code == 200
+
+    restaurant_path = tmp_path / "restaurants.json"
+    restaurants = json.loads(restaurant_path.read_text(encoding="utf-8"))
+    restaurants[1]["is_active"] = False
+    restaurant_path.write_text(json.dumps(restaurants), encoding="utf-8")
+
+    response = client.post(url, json=item)
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Restaurant 'rest_002' is inactive"
+    assert repository.get_all()[0].items[0].quantity == 1
+    assert client.get("/cart").json() == initial.json()
+    cleared = client.delete("/cart")
+    assert cleared.status_code == 200
+    assert cleared.json()["items"] == []
 
 
 def test_service_validation_error_mapping(authenticated_api, monkeypatch):

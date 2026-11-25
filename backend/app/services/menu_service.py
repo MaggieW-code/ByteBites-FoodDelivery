@@ -16,6 +16,10 @@ class MenuRestaurantNotFoundError(Exception):
     pass
 
 
+class MenuRestaurantInactiveError(Exception):
+    pass
+
+
 class MenuItemNotFoundError(Exception):
     pass
 
@@ -29,10 +33,13 @@ class MenuService:
         self.menu_repository = menu_repository
         self.restaurant_repository = restaurant_repository
 
-    def get_menu(self, restaurant_id: str) -> Menu:
+    def get_menu(self, restaurant_id: str, *, require_active: bool = False) -> Menu:
         try:
-            if self.restaurant_repository.get_by_id(restaurant_id) is None:
+            restaurant = self.restaurant_repository.get_by_id(restaurant_id)
+            if restaurant is None:
                 raise MenuRestaurantNotFoundError(f"Restaurant '{restaurant_id}' not found")
+            if require_active and restaurant.get("is_active") is not True:
+                raise MenuRestaurantInactiveError(f"Restaurant '{restaurant_id}' is inactive")
             menu = self.menu_repository.get_by_restaurant_id(restaurant_id)
             if menu is None:
                 return Menu(restaurant_id=restaurant_id, currency="CAD", items=[])
