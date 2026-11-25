@@ -1,12 +1,12 @@
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from dataclasses import dataclass
 from decimal import Decimal
-from threading import Lock
 from uuid import uuid4
 
 from pydantic import TypeAdapter, ValidationError
 
-from backend.app.models.cart_model import Cart, CartItem, CartResponse, Money
+from backend.app.models.cart_model import Cart, CartItem, CartResponse, CartStatus, CheckoutCart, Money
 from backend.app.models.menu_model import MenuItem
 from backend.app.repositories.cart_repository import CartDataError, CartRepository
 from backend.app.services.menu_service import (
@@ -45,8 +45,16 @@ class CartStorageError(CartServiceError):
     pass
 
 
+@dataclass(frozen=True)
+class CartCheckoutSession:
+    cart: CheckoutCart | None
+    _close_cart: Callable[[], None]
+
+    def close_cart(self) -> None:
+        self._close_cart()
+
+
 class CartService:
-    _lock = Lock()
     _price = TypeAdapter(Money)
 
     def __init__(self, cart_repository: CartRepository, menu_service: MenuService):
@@ -67,9 +75,7 @@ class CartService:
         """Return the current cart, initializing an empty cart if needed."""
         return self.get_or_create_cart(customer_id)
 
-    def add_item(
-        self, customer_id: str, restaurant_id: str, menu_item_id: str, quantity: int
-    ) -> CartResponse:
+    def add_item(self, customer_id: str, restaurant_id: str, menu_item_id: str, quantity: int) -> CartResponse:
         self._validate_quantity(quantity)
         if not isinstance(restaurant_id, str) or len(restaurant_id) != 8:
             raise CartValidationError("Restaurant ID must be an eight-character string")
@@ -96,9 +102,7 @@ class CartService:
                             quantity=existing.quantity + quantity,
                         )
                     except ValidationError as error:
-                        raise CartValidationError(
-                            "Invalid combined cart item quantity"
-                        ) from error
+                        raise CartValidationError("Invalid combined cart item quantity") from error
                     break
             else:
                 cart.items.append(item)
@@ -107,9 +111,7 @@ class CartService:
             self._persist(cart, exists)
             return response
 
-    def update_item_quantity(
-        self, customer_id: str, menu_item_id: str, quantity: int
-    ) -> CartResponse:
+    def update_item_quantity(self, customer_id: str, menu_item_id: str, quantity: int) -> CartResponse:
         self._validate_quantity(quantity)
         with self._operation():
             cart, exists = self._active_cart(customer_id)
@@ -137,12 +139,34 @@ class CartService:
             return self._response(cart)
 
     @contextmanager
+    def checkout_session(self, customer_id: str, cart_id: str) -> Iterator[CartCheckoutSession]:
+        """Hold the selected cart stable until checkout saves the order and closes it."""
+        with self.cart_repository.locked():
+            cart = self.cart_repository.get_active_by_customer_id(customer_id)
+            if cart is not None and cart.id != cart_id:
+                cart = None
+
+            def close_cart() -> None:
+                if cart is None:
+                    raise CartStorageError("No active cart to close")
+                self._persist(cart.model_copy(update={"status": CartStatus.CHECKED_OUT}), exists=True)
+
+            snapshot = None
+            if cart is not None:
+                snapshot = CheckoutCart(
+                    customer_id=cart.customer_id,
+                    restaurant_id=cart.restaurant_id,
+                    items=tuple((item.menu_item_id, item.quantity) for item in cart.items),
+                )
+            yield CartCheckoutSession(snapshot, close_cart)
+
+    @contextmanager
     def _operation(self) -> Iterator[None]:
-        with self._lock:
-            try:
+        try:
+            with self.cart_repository.locked():
                 yield
-            except (CartDataError, OSError) as error:
-                raise CartStorageError("Unable to access cart storage") from error
+        except (CartDataError, OSError) as error:
+            raise CartStorageError("Unable to access cart storage") from error
 
     def _active_cart(self, customer_id: str) -> tuple[Cart, bool]:
         if not isinstance(customer_id, str) or not customer_id:
@@ -170,9 +194,7 @@ class CartService:
                 return index
         raise CartItemNotFoundError(f"Item '{menu_item_id}' is not in the cart")
 
-    def _menu_items(
-        self, restaurant_id: str, *, require_active: bool = False
-    ) -> dict[str, MenuItem]:
+    def _menu_items(self, restaurant_id: str, *, require_active: bool = False) -> dict[str, MenuItem]:
         try:
             menu = self.menu_service.get_menu(restaurant_id, require_active=require_active)
         except MenuRestaurantNotFoundError:
@@ -190,9 +212,7 @@ class CartService:
         except KeyError as error:
             raise CartMenuItemNotFoundError(f"Menu item '{menu_item_id}' was not found") from error
 
-    def _response(
-        self, cart: Cart, menu_items: dict[str, MenuItem] | None = None
-    ) -> CartResponse:
+    def _response(self, cart: Cart, menu_items: dict[str, MenuItem] | None = None) -> CartResponse:
         subtotal = Decimal("0.00")
         if cart.items:
             if cart.restaurant_id is None:
@@ -205,9 +225,7 @@ class CartService:
                 try:
                     price = self._price.validate_python(menu_item.price)
                 except ValidationError as error:
-                    raise CartStorageError(
-                        f"Invalid menu price for item '{item.menu_item_id}'"
-                    ) from error
+                    raise CartStorageError(f"Invalid menu price for item '{item.menu_item_id}'") from error
                 subtotal += price * item.quantity
 
         return CartResponse(**cart.model_dump(), subtotal=subtotal, total=subtotal)
