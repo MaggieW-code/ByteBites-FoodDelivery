@@ -7,7 +7,6 @@ import pytest
 
 from backend.app.models.menu_model import Menu, MenuListItem
 from backend.app.repositories.order_repository import OrderRepository
-from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.checkout_service import (
     CheckoutCart,
     CheckoutCartNotFoundError,
@@ -17,7 +16,11 @@ from backend.app.services.checkout_service import (
     CheckoutSession,
     CheckoutUnavailableError,
 )
-from backend.app.services.menu_service import MenuService
+from backend.app.services.menu_service import (
+    MenuRestaurantInactiveError,
+    MenuRestaurantNotFoundError,
+    MenuService,
+)
 
 
 @pytest.fixture
@@ -26,8 +29,6 @@ def checkout(tmp_path):
     session.cart = CheckoutCart("customer_001", "rest_001", (("item_001", 2),))
     carts = Mock(spec=CheckoutCarts)
     carts.checkout_session.return_value = nullcontext(session)
-    restaurants = Mock(spec=RestaurantRepository)
-    restaurants.get_by_id.return_value = {"is_active": True}
     menus = Mock(spec=MenuService)
     menus.get_menu.return_value = Menu(
         restaurant_id="rest_001",
@@ -43,7 +44,7 @@ def checkout(tmp_path):
         ],
     )
     orders = OrderRepository(tmp_path / "orders.json")
-    return CheckoutService(carts, restaurants, menus, orders), session
+    return CheckoutService(carts, menus, orders), session
 
 
 def place_order(service, cart_id="cart_001"):
@@ -108,10 +109,10 @@ def test_missing_or_foreign_cart_is_rejected(checkout, customer_id):
     session.close_cart.assert_not_called()
 
 
-@pytest.mark.parametrize("restaurant", [None, {"is_active": False}])
-def test_missing_or_inactive_restaurant_is_rejected(checkout, restaurant):
+@pytest.mark.parametrize("error", [MenuRestaurantNotFoundError("gone"), MenuRestaurantInactiveError("closed")])
+def test_missing_or_inactive_restaurant_is_rejected(checkout, error):
     service, session = checkout
-    service.restaurants.get_by_id.return_value = restaurant
+    service.menus.get_menu.side_effect = error
 
     with pytest.raises(CheckoutUnavailableError, match="Restaurant is unavailable"):
         place_order(service)
@@ -182,3 +183,11 @@ def test_retry_does_not_close_a_cart_changed_since_persistence(checkout):
 
     assert service.orders.get_all() == [saved]
     session.close_cart.assert_not_called()
+
+
+def test_checkout_asks_the_menu_feature_for_an_active_restaurant(checkout):
+    service, _ = checkout
+
+    place_order(service)
+
+    service.menus.get_menu.assert_called_once_with("rest_001", require_active=True)

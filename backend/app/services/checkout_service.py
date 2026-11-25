@@ -8,8 +8,12 @@ from pydantic import ValidationError
 from backend.app.models.cart_model import CheckoutCart
 from backend.app.models.order_model import Order, OrderItem
 from backend.app.repositories.order_repository import OrderRepository
-from backend.app.repositories.restaurant_repository import RestaurantRepository
-from backend.app.services.menu_service import MenuReadError, MenuRestaurantNotFoundError, MenuService
+from backend.app.services.menu_service import (
+    MenuReadError,
+    MenuRestaurantInactiveError,
+    MenuRestaurantNotFoundError,
+    MenuService,
+)
 
 
 class CheckoutUnavailableError(Exception):
@@ -43,12 +47,10 @@ class CheckoutService:
     def __init__(
         self,
         carts: CheckoutCarts,
-        restaurants: RestaurantRepository,
         menus: MenuService,
         orders: OrderRepository,
     ):
         self.carts = carts
-        self.restaurants = restaurants
         self.menus = menus
         self.orders = orders
 
@@ -100,13 +102,12 @@ class CheckoutService:
         restaurant_id = cart.restaurant_id
         if restaurant_id is None:
             raise CheckoutConflictError("Cart has no restaurant")
-        restaurant = self.restaurants.get_by_id(restaurant_id)
-        if restaurant is None or restaurant.get("is_active") is not True:
-            raise CheckoutUnavailableError("Restaurant is unavailable")
-
+        # The menu feature owns the restaurant rules: it raises if the restaurant is missing or inactive
         try:
-            menu = self.menus.get_menu(restaurant_id)
-        except (MenuReadError, MenuRestaurantNotFoundError, ValidationError) as error:
+            menu = self.menus.get_menu(restaurant_id, require_active=True)
+        except (MenuRestaurantNotFoundError, MenuRestaurantInactiveError) as error:
+            raise CheckoutUnavailableError("Restaurant is unavailable") from error
+        except (MenuReadError, ValidationError) as error:
             raise CheckoutUnavailableError("Restaurant menu is invalid") from error
         menu_items = {item.id: item for item in menu.items}
         if menu.restaurant_id != restaurant_id or len(menu_items) != len(menu.items):

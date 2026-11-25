@@ -545,3 +545,20 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Purpose: Needed to implement the frontend without enough time to fully do it myself. I have personal documentation on refactors, architecture, ruling, and finding's I want to implement as time goes on so I had it go through that for reference.
 - Validation: I tested everything manually and in repo and browser.
 - PR: #158
+
+### Entry 34
+
+- Student(s):
+- Artifact: backend/app/services/checkout_service.py (new), backend/app/services/cart_service.py,
+  backend/app/models/checkout_model.py (new), backend/app/models/cart_model.py,
+  backend/app/repositories/cart_repository.py, backend/app/routes/checkout_routes.py (new),
+  backend/app/routes/cart_routes.py, backend/app/dependencies/commerce.py (new),
+  backend/app/menu_dependencies.py, main.py, .gitignore, backend/tests/test_checkout_service.py (new),
+  backend/tests/test_checkout_routes.py (new), backend/tests/test_order_checkout_flow.py (new),
+  backend/tests/test_cart_service.py, backend/app/*/README.md, backend/tests/README.md
+- Label: <!-- AI-GENERATED | AI-ASSISTED | AI-REVISED | NO-AI -->
+- AI tool:
+- Purpose:
+- Influence:
+- Validation:
+- PR: 144

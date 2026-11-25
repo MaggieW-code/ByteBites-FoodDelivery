@@ -1,4 +1,3 @@
-
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -37,26 +36,18 @@ class CartRepository:
         except FileNotFoundError:
             return []
         except (json.JSONDecodeError, UnicodeDecodeError) as error:
-            raise CartDataMalformedError(
-                f"Cart data is malformed: {self.data_path}"
-            ) from error
+            raise CartDataMalformedError(f"Cart data is malformed: {self.data_path}") from error
 
         if not isinstance(records, list):
-            raise CartDataError(
-                f"Cart data must contain a list: {self.data_path}"
-            )
+            raise CartDataError(f"Cart data must contain a list: {self.data_path}")
 
         try:
             carts = [Cart.model_validate(record) for record in records]
         except ValidationError as error:
-            raise CartDataError(
-                f"Invalid cart record: {self.data_path}"
-            ) from error
+            raise CartDataError(f"Invalid cart record: {self.data_path}") from error
 
         if len({cart.id for cart in carts}) != len(carts):
-            raise CartDataError(
-                f"Duplicate cart IDs: {self.data_path}"
-            )
+            raise CartDataError(f"Duplicate cart IDs: {self.data_path}")
 
         return carts
 
@@ -66,40 +57,25 @@ class CartRepository:
             None,
         )
 
-    def get_active_by_customer_id(
-        self, customer_id: str
-    ) -> Cart | None:
+    def get_active_by_customer_id(self, customer_id: str) -> Cart | None:
         return next(
-            (
-                cart
-                for cart in self.get_all()
-                if cart.customer_id == customer_id
-                and cart.status == CartStatus.ACTIVE
-            ),
+            (cart for cart in self.get_all() if cart.customer_id == customer_id and cart.status == CartStatus.ACTIVE),
             None,
         )
 
-    def _check_active_cart(
-        self, cart: Cart, carts: list[Cart]
-    ) -> None:
+    def _check_active_cart(self, cart: Cart, carts: list[Cart]) -> None:
         if cart.status == CartStatus.ACTIVE and any(
-            existing.customer_id == cart.customer_id
-            and existing.status == CartStatus.ACTIVE
-            and existing.id != cart.id
+            existing.customer_id == cart.customer_id and existing.status == CartStatus.ACTIVE and existing.id != cart.id
             for existing in carts
         ):
-            raise CartDataError(
-                f"Customer already has an active cart: {cart.customer_id}"
-            )
+            raise CartDataError(f"Customer already has an active cart: {cart.customer_id}")
 
     def create(self, cart: Cart) -> Cart:
         with self.locked():
             carts = self.get_all()
 
             if any(existing.id == cart.id for existing in carts):
-                raise CartDataError(
-                    f"Cart already exists: {cart.id}"
-                )
+                raise CartDataError(f"Cart already exists: {cart.id}")
 
             self._check_active_cart(cart, carts)
             carts.append(cart)
@@ -121,10 +97,7 @@ class CartRepository:
         return None
 
     def _save(self, carts: list[Cart]) -> None:
-        records = [
-            cart.model_dump(mode="json")
-            for cart in carts
-        ]
+        records = [cart.model_dump(mode="json") for cart in carts]
 
         temporary_path = None
 

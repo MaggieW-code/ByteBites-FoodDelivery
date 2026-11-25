@@ -150,7 +150,6 @@ def test_concurrent_checkout_requests_reuse_the_saved_order(order_flow):
     assert carts.get_by_id(cart_id).status == CartStatus.CHECKED_OUT
 
 
-
 def test_checkout_menu_read_error_leaves_cart_active(order_flow, tmp_path):
     client, carts, orders = order_flow
     headers = sign_in(client)

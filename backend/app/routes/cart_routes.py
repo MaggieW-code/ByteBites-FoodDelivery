@@ -60,9 +60,7 @@ def add_item(
 
 
 @router.patch("/items/{item_id}", response_model=CartResponse)
-def update_item(
-    item_id: ItemId, data: UpdateCartItemRequest, customer_id: CustomerId, service: Service
-) -> CartResponse:
+def update_item(item_id: ItemId, data: UpdateCartItemRequest, customer_id: CustomerId, service: Service) -> CartResponse:
     return service.update_item_quantity(customer_id, item_id, data.quantity)
 
 

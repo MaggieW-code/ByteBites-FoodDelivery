@@ -75,9 +75,7 @@ class CartService:
         """Return the current cart, initializing an empty cart if needed."""
         return self.get_or_create_cart(customer_id)
 
-    def add_item(
-        self, customer_id: str, restaurant_id: str, menu_item_id: str, quantity: int
-    ) -> CartResponse:
+    def add_item(self, customer_id: str, restaurant_id: str, menu_item_id: str, quantity: int) -> CartResponse:
         self._validate_quantity(quantity)
         if not isinstance(restaurant_id, str) or len(restaurant_id) != 8:
             raise CartValidationError("Restaurant ID must be an eight-character string")
@@ -104,9 +102,7 @@ class CartService:
                             quantity=existing.quantity + quantity,
                         )
                     except ValidationError as error:
-                        raise CartValidationError(
-                            "Invalid combined cart item quantity"
-                        ) from error
+                        raise CartValidationError("Invalid combined cart item quantity") from error
                     break
             else:
                 cart.items.append(item)
@@ -115,9 +111,7 @@ class CartService:
             self._persist(cart, exists)
             return response
 
-    def update_item_quantity(
-        self, customer_id: str, menu_item_id: str, quantity: int
-    ) -> CartResponse:
+    def update_item_quantity(self, customer_id: str, menu_item_id: str, quantity: int) -> CartResponse:
         self._validate_quantity(quantity)
         with self._operation():
             cart, exists = self._active_cart(customer_id)
@@ -200,9 +194,7 @@ class CartService:
                 return index
         raise CartItemNotFoundError(f"Item '{menu_item_id}' is not in the cart")
 
-    def _menu_items(
-        self, restaurant_id: str, *, require_active: bool = False
-    ) -> dict[str, MenuItem]:
+    def _menu_items(self, restaurant_id: str, *, require_active: bool = False) -> dict[str, MenuItem]:
         try:
             menu = self.menu_service.get_menu(restaurant_id, require_active=require_active)
         except MenuRestaurantNotFoundError:
@@ -220,9 +212,7 @@ class CartService:
         except KeyError as error:
             raise CartMenuItemNotFoundError(f"Menu item '{menu_item_id}' was not found") from error
 
-    def _response(
-        self, cart: Cart, menu_items: dict[str, MenuItem] | None = None
-    ) -> CartResponse:
+    def _response(self, cart: Cart, menu_items: dict[str, MenuItem] | None = None) -> CartResponse:
         subtotal = Decimal("0.00")
         if cart.items:
             if cart.restaurant_id is None:
@@ -235,9 +225,7 @@ class CartService:
                 try:
                     price = self._price.validate_python(menu_item.price)
                 except ValidationError as error:
-                    raise CartStorageError(
-                        f"Invalid menu price for item '{item.menu_item_id}'"
-                    ) from error
+                    raise CartStorageError(f"Invalid menu price for item '{item.menu_item_id}'") from error
                 subtotal += price * item.quantity
 
         return CartResponse(**cart.model_dump(), subtotal=subtotal, total=subtotal)

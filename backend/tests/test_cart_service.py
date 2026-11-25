@@ -1,4 +1,3 @@
-
 import json
 from decimal import Decimal
 
@@ -24,32 +23,36 @@ from backend.app.services.menu_service import MenuService
 def service(tmp_path):
     restaurant_path = tmp_path / "restaurants.json"
     restaurant_path.write_text(
-        json.dumps([
-            {"id": "rest_001", "is_active": True},
-            {"id": "rest_002", "is_active": True},
-        ]),
+        json.dumps(
+            [
+                {"id": "rest_001", "is_active": True},
+                {"id": "rest_002", "is_active": True},
+            ]
+        ),
         encoding="utf-8",
     )
     menu_path = tmp_path / "menus.json"
     menu_path.write_text(
-        json.dumps([
-            {
-                "restaurant_id": "rest_001",
-                "currency": "CAD",
-                "items": [
-                    {"id": "item_001", "name": "item_001", "description": "", "price": "0.10", "is_available": True},
-                    {"id": "item_002", "name": "item_002", "description": "", "price": 2.35, "is_available": True},
-                    {"id": "item_003", "name": "item_003", "description": "", "price": "1.00", "is_available": False},
-                ],
-            },
-            {
-                "restaurant_id": "rest_002",
-                "currency": "CAD",
-                "items": [
-                    {"id": "item_004", "name": "item_004", "description": "", "price": "4.25", "is_available": True}
-                ],
-            },
-        ]),
+        json.dumps(
+            [
+                {
+                    "restaurant_id": "rest_001",
+                    "currency": "CAD",
+                    "items": [
+                        {"id": "item_001", "name": "item_001", "description": "", "price": "0.10", "is_available": True},
+                        {"id": "item_002", "name": "item_002", "description": "", "price": 2.35, "is_available": True},
+                        {"id": "item_003", "name": "item_003", "description": "", "price": "1.00", "is_available": False},
+                    ],
+                },
+                {
+                    "restaurant_id": "rest_002",
+                    "currency": "CAD",
+                    "items": [
+                        {"id": "item_004", "name": "item_004", "description": "", "price": "4.25", "is_available": True}
+                    ],
+                },
+            ]
+        ),
         encoding="utf-8",
     )
 
