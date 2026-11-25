@@ -94,3 +94,33 @@ def test_rejected_registration_saves_nothing(client: TestClient, account_reposit
     client.post("/customers", json=registration_body(password="short"))
 
     assert account_repository.load_all() == before
+
+
+# --- C2: sign in ---
+
+
+@pytest.mark.parametrize(
+    "registered_email, sign_in_email",
+    [("nina@example.com", "nina@example.com"), ("Nina@Example.com", "  NINA@example.COM ")],
+    ids=["same", "case-and-spaces"],
+)
+def test_registered_customer_can_sign_in_and_see_their_profile(
+    client: TestClient, registered_email: str, sign_in_email: str
+) -> None:
+    registered = client.post("/customers", json=registration_body(email=registered_email)).json()
+
+    sign_in = client.post("/auth/sign-in", json={"email": sign_in_email, "password": "nina-password"})
+    assert sign_in.status_code == 200
+
+    me = client.get("/auth/me", headers={"Authorization": f"Bearer {sign_in.json()['access_token']}"})
+    assert me.status_code == 200
+    assert me.json() == registered
+
+
+def test_registered_customer_with_wrong_password_gets_401(client: TestClient) -> None:
+    client.post("/customers", json=registration_body())
+
+    response = client.post("/auth/sign-in", json={"email": "nina@example.com", "password": "not-nina-password"})
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid email or password"
