@@ -528,4 +528,20 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Influence: Tests, and basic logic imlementation, however refrained from leting Claude dictate architecture, and actually caught some bugs or 'mistakes' 
   it would try implementing here or there.
 - Validation: Manually ran tests in `uvicorn main:app` and pytest.
-- PR: TBA
+- PR: #156
+
+### Entry 32
+
+- Student(s):
+- Artifact: frontend/src/api/client.ts (new), frontend/src/api/accounts.ts (new),
+  frontend/src/types/account.ts (new), frontend/src/hooks/useCurrentAccount.ts (new),
+  frontend/src/hooks/useMyProfile.ts (new), frontend/src/routes/RequireSignIn.tsx (new),
+  frontend/src/pages/AccountView.tsx (new), frontend/src/pages/ProfileView.tsx (new),
+  frontend/src/App.tsx, frontend/src/layouts/generic_layout/GenericLayout.tsx,
+  frontend/src/api/tests/*, frontend/src/pages/tests/*, frontend/src/routes/tests/*,
+  frontend/src/layouts/generic_layout/tests/*, frontend/src/*/README.md, frontend/src/README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Needed to implement the frontend without enough time to fully do it myself. I have personal documentation on refactors, architecture, ruling, and finding's I want to implement as time goes on so I had it go through that for reference.
+- Validation: I tested everything manually and in repo and browser.
+- PR: #157
