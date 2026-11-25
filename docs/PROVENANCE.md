@@ -583,3 +583,20 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   Integration tests covered authenticated checkout and order retrieval, duplicate requests,
   and cart preservation after order storage or menu read failures.
 - PR: 144
+
+### Entry 35
+
+- Student(s):
+- Artifact: backend/app/models/order_model.py (new), backend/app/repositories/order_repository.py (new),
+  backend/app/services/order_service.py (new), backend/app/routes/order_routes.py (new),
+  backend/app/routes/auth_dependencies.py (new), backend/app/dependencies/orders.py (new),
+  backend/tests/test_order_model.py (new), backend/tests/test_order_repository.py (new),
+  backend/tests/test_order_auth_flow.py (new),
+  backend/tests/test_order_routes.py (new), backend/tests/test_order_service.py (new), requirements.txt, .gitignore,
+  backend/app/*/README.md
+- Label: <!-- AI-GENERATED | AI-ASSISTED | AI-REVISED | NO-AI -->
+- AI tool:
+- Purpose:
+- Influence:
+- Validation:
+- PR: 133, 143
