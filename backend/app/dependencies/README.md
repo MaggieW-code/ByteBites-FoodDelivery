@@ -32,3 +32,5 @@ Every 401 carries `WWW-Authenticate: Bearer`. `bearer_scheme` (`HTTPBearer`) als
 - Coarse checks (signed in, role) live here. Rules about specific data (this cart is yours)
   live in the service that owns that data.
 - Catch only named domain errors; never `Exception`.
+
+orders.py builds the order repository and service using ORDERS_PATH.
