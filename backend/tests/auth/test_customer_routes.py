@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from backend.app.repositories.accounts.account_repository import AccountRepository
 from backend.app.services.accounts.account_service import AccountService
 from backend.app.services.accounts.password_hashing import verify_password
+from backend.tests.auth.auth_helpers import TEST_PASSWORD
 
 AuthHeaders = Callable[[str], dict[str, str]]
 
@@ -168,3 +169,161 @@ def test_profile_for_a_deactivated_customer_is_403(
     account_service.deactivate_account("cust_001")
 
     assert client.get("/customers/me", headers=headers).status_code == 403
+
+
+# --- C4: update ---
+
+
+def test_customer_updates_their_profile(client: TestClient, auth_headers: AuthHeaders) -> None:
+    headers = auth_headers("cara@example.com")
+    body = {
+        "full_name": "Cara Renamed",
+        "email": "cara.new@example.com",
+        "phone": "(250) 555-0199",
+    }
+
+    response = client.patch("/customers/me", headers=headers, json=body)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": "cust_001",
+        "full_name": "Cara Renamed",
+        "email": "cara.new@example.com",
+        "phone": "+12505550199",
+        "is_active": True,
+        "role": "customer",
+        "delivery_addresses": [],
+    }
+    assert client.get("/customers/me", headers=headers).json() == response.json()
+
+
+def test_update_ignores_fields_a_customer_cannot_change(client: TestClient, auth_headers: AuthHeaders) -> None:
+    body = {
+        "full_name": "Cara",
+        "role": "admin",
+        "is_active": False,
+        "id": "hack_001",
+        "password": "new-password",
+        "delivery_addresses": [{"id": "addr_001", "label": "Home", "address": "1 Main St"}],
+    }
+
+    customer = client.patch("/customers/me", headers=auth_headers("cara@example.com"), json=body).json()
+
+    assert (customer["id"], customer["role"], customer["is_active"]) == ("cust_001", "customer", True)
+    assert customer["delivery_addresses"] == []
+    sign_in = client.post("/auth/sign-in", json={"email": "cara@example.com", "password": TEST_PASSWORD})
+    assert sign_in.status_code == 200
+
+
+def test_update_to_another_accounts_email_is_409(client: TestClient, auth_headers: AuthHeaders) -> None:
+    response = client.patch("/customers/me", headers=auth_headers("cara@example.com"), json={"email": "omar@example.com"})
+
+    assert response.status_code == 409
+
+
+@pytest.mark.parametrize(
+    "body",
+    [{}, {"full_name": None}, {"email": "not-an-email"}, {"phone": "12501233211"}],
+    ids=["empty", "null-name", "bad-email", "bad-phone"],
+)
+def test_invalid_update_is_422_and_saves_nothing(
+    client: TestClient, auth_headers: AuthHeaders, account_repository: AccountRepository, body: dict[str, Any]
+) -> None:
+    before = account_repository.load_all()
+
+    response = client.patch("/customers/me", headers=auth_headers("cara@example.com"), json=body)
+
+    assert response.status_code == 422
+    assert account_repository.load_all() == before
+
+
+def test_update_without_a_token_is_401(client: TestClient) -> None:
+    assert client.patch("/customers/me", json={"full_name": "Nobody"}).status_code == 401
+
+
+def test_update_by_a_non_customer_is_403(client: TestClient, auth_headers: AuthHeaders) -> None:
+    response = client.patch("/customers/me", headers=auth_headers("omar@example.com"), json={"full_name": "Omar"})
+
+    assert response.status_code == 403
+
+
+# --- C4: delivery addresses ---
+
+HOME = {"label": "Home", "address": "1 Main St"}
+WORK = {"label": "Work", "address": "2 Office Rd"}
+
+
+def test_add_address_returns_201_with_an_id_and_keeps_earlier_ones(client: TestClient, auth_headers: AuthHeaders) -> None:
+    headers = auth_headers("cara@example.com")
+
+    home = client.post("/customers/me/addresses", headers=headers, json=HOME)
+    work = client.post("/customers/me/addresses", headers=headers, json=WORK)
+
+    assert (home.status_code, work.status_code) == (201, 201)
+    assert home.json() == {"id": home.json()["id"], **HOME}
+    assert client.get("/customers/me", headers=headers).json()["delivery_addresses"] == [home.json(), work.json()]
+
+
+def test_edit_and_remove_one_address(client: TestClient, auth_headers: AuthHeaders) -> None:
+    headers = auth_headers("cara@example.com")
+    home = client.post("/customers/me/addresses", headers=headers, json=HOME).json()
+    work = client.post("/customers/me/addresses", headers=headers, json=WORK).json()
+
+    edited = client.patch(f"/customers/me/addresses/{home['id']}", headers=headers, json={"address": "9 New Ave"})
+    assert edited.status_code == 200
+    assert edited.json() == {"id": home["id"], "label": "Home", "address": "9 New Ave"}
+
+    assert client.delete(f"/customers/me/addresses/{work['id']}", headers=headers).status_code == 204
+    assert client.get("/customers/me", headers=headers).json()["delivery_addresses"] == [edited.json()]
+
+
+@pytest.mark.parametrize("method", ["patch", "delete"])
+def test_unknown_address_is_404(client: TestClient, auth_headers: AuthHeaders, method: str) -> None:
+    extra = {"json": {"label": "X"}} if method == "patch" else {}
+
+    response = getattr(client, method)("/customers/me/addresses/nope_000", headers=auth_headers("cara@example.com"), **extra)
+
+    assert response.status_code == 404
+
+
+def test_customers_cannot_touch_each_others_addresses(client: TestClient, auth_headers: AuthHeaders) -> None:
+    cara_address = client.post("/customers/me/addresses", headers=auth_headers("cara@example.com"), json=HOME).json()
+    client.post("/customers", json=registration_body(password=TEST_PASSWORD))
+    nina = auth_headers("nina@example.com")
+
+    assert client.delete(f"/customers/me/addresses/{cara_address['id']}", headers=nina).status_code == 404
+    assert client.get("/customers/me", headers=auth_headers("cara@example.com")).json()["delivery_addresses"] == [cara_address]
+
+
+@pytest.mark.parametrize(
+    "path, method, body",
+    [
+        ("/customers/me/addresses", "post", {"label": "Home"}),
+        ("/customers/me/addresses", "post", {"label": "", "address": "1 Main St"}),
+        ("/customers/me/addresses/addr_001", "patch", {}),
+        ("/customers/me/addresses/short", "patch", {"label": "X"}),
+    ],
+    ids=["missing-address", "empty-label", "empty-update", "bad-address-id"],
+)
+def test_invalid_address_request_is_422(
+    client: TestClient, auth_headers: AuthHeaders, path: str, method: str, body: dict[str, Any]
+) -> None:
+    response = getattr(client, method)(path, headers=auth_headers("cara@example.com"), json=body)
+
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "method, path",
+    [
+        ("post", "/customers/me/addresses"),
+        ("patch", "/customers/me/addresses/addr_001"),
+        ("delete", "/customers/me/addresses/addr_001"),
+    ],
+    ids=["add", "edit", "remove"],
+)
+def test_address_routes_need_a_customer(client: TestClient, auth_headers: AuthHeaders, method: str, path: str) -> None:
+    extra = {} if method == "delete" else {"json": HOME}
+
+    assert getattr(client, method)(path, **extra).status_code == 401
+    assert getattr(client, method)(path, headers=auth_headers("omar@example.com"), **extra).status_code == 403

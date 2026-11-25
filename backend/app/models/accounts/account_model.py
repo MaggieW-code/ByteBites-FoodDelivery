@@ -1,6 +1,6 @@
 from typing import Annotated, Literal, TypeAlias
 
-from pydantic import BaseModel, BeforeValidator, EmailStr, Field, SecretStr
+from pydantic import BaseModel, BeforeValidator, EmailStr, Field, SecretStr, model_validator
 from pydantic_extra_types.phone_numbers import PhoneNumberValidator
 
 
@@ -26,9 +26,52 @@ class AccountCreationRequest(BaseModel):
     password: Annotated[SecretStr, Field(min_length=8, max_length=128)]
 
 
-class DeliveryAddress(BaseModel):
+DeliveryAddressId: TypeAlias = EightCharId
+
+
+class PartialUpdateRequest(BaseModel):
+    """Base for PATCH bodies: send only the fields to change, at least one, and never `null`."""
+
+    @model_validator(mode="after")
+    def require_a_change_without_nulls(self) -> "PartialUpdateRequest":
+        if not self.model_fields_set:
+            raise ValueError("Send at least one field to update")
+        null_fields = sorted(field for field in self.model_fields_set if getattr(self, field) is None)
+        if null_fields:
+            raise ValueError(f"Fields cannot be null: {', '.join(null_fields)}")
+        return self
+
+
+class DeliveryAddressFields(BaseModel):
     label: NonEmptyText
     address: NonEmptyText
+
+
+class CreateDeliveryAddressRequest(DeliveryAddressFields):
+    pass
+
+
+class UpdateDeliveryAddressRequest(PartialUpdateRequest):
+    label: NonEmptyText | None = None
+    address: NonEmptyText | None = None
+
+
+class DeliveryAddress(DeliveryAddressFields):
+    """A saved address. The ID is unique within its customer, so one address can be edited or removed."""
+
+    id: DeliveryAddressId
+
+
+class UpdateCustomerRequest(PartialUpdateRequest):
+    """PATCH body for the customer's own details. Addresses change through `/customers/me/addresses`.
+
+    Fields not declared here (`role`, `is_active`, `password`, `id`, `delivery_addresses`) are
+    ignored, so a customer can't change them here.
+    """
+
+    full_name: NonEmptyText | None = None
+    email: Email | None = None
+    phone: PhoneNumber | None = None
 
 
 class AccountBase(BaseModel):

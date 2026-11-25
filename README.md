@@ -162,6 +162,18 @@ Parcel serves the app locally and prints the URL. See
 - `GET /customers/me` — the signed-in customer's own profile (same shape as
   above). Send `Authorization: Bearer <token>`. Returns `401` without a valid
   token and `403` for a non-customer or a deactivated account.
+- `PATCH /customers/me` — update the signed-in customer. Send only the fields to
+  change: `full_name`, `email`, `phone`. Same rules as registration. Returns
+  `200` with the updated profile, `409` if the email belongs to another account,
+  and `422` for an empty body, a `null`, or an invalid value. `role`,
+  `is_active`, `password` and addresses can't be changed here.
+- `POST /customers/me/addresses` — add a delivery address (`label`, `address`).
+  Returns `201` with the address and its new 8-character `id`.
+- `PATCH /customers/me/addresses/{address_id}` — change one address; send only
+  `label` and/or `address`. Returns `200`, or `404` if the customer has no
+  address with that ID.
+- `DELETE /customers/me/addresses/{address_id}` — remove one address. Returns
+  `204`, or `404`. A customer can only reach their own addresses.
 
 Request bodies that fail validation return `422`.
 
