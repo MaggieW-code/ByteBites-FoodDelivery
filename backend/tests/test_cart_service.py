@@ -241,3 +241,31 @@ def test_invalid_restaurant_id(service, restaurant_id):
         service.add_item("customer", restaurant_id, "item_001", 1)
 
     assert service.cart_repository.get_all() == []
+
+
+def test_checkout_session_only_exposes_selected_customer_cart(service):
+    cart = service.add_item("customer", "rest_001", "item_001", 2)
+
+    with service.checkout_session("other", cart.id) as session:
+        assert session.cart is None
+    with service.checkout_session("customer", "other-cart") as session:
+        assert session.cart is None
+
+    assert service.cart_repository.get_by_id(cart.id).status == CartStatus.ACTIVE
+
+
+def test_checkout_session_holds_snapshot_until_order_save(service):
+    cart = service.add_item("customer", "rest_001", "item_001", 2)
+
+    with service.checkout_session("customer", cart.id) as session:
+        assert session.cart.customer_id == "customer"
+        assert session.cart.restaurant_id == "rest_001"
+        assert session.cart.items == (("item_001", 2),)
+        assert service.cart_repository.get_by_id(cart.id).status == CartStatus.ACTIVE
+    assert service.cart_repository.get_by_id(cart.id).status == CartStatus.ACTIVE
+
+    with service.checkout_session("customer", cart.id) as session:
+        session.close_cart()
+
+    assert service.cart_repository.get_by_id(cart.id).status == CartStatus.CHECKED_OUT
+    assert service.get_cart("customer").id != cart.id

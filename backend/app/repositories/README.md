@@ -36,3 +36,5 @@ record also counts as malformed.
 - Not yet true: reads return raw `dict`s, `update` in `restaurant_repository.py`
   decides which fields may change, and `menu_repository.py` `get_by_restaurant_id` skips
   `get_all`'s error handling.
+
+The cart checkout session holds the cart file lock through order persistence. Normal cart mutations acquire the same lock.

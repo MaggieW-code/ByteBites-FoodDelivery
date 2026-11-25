@@ -41,3 +41,7 @@ backend/app/data/sessions.json
 
 # Local order records
 /backend/app/data/orders.json
+
+# Local cart storage
+/backend/app/data/carts.json
+/backend/app/data/carts.json.lock

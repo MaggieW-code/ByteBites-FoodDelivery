@@ -1,9 +1,11 @@
 
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from threading import Lock
 
+from filelock import FileLock
 from pydantic import ValidationError
 
 from backend.app.models.cart_model import Cart, CartStatus
@@ -18,10 +20,15 @@ class CartDataMalformedError(CartDataError):
 
 
 class CartRepository:
-    _write_lock = Lock()
-
     def __init__(self, data_path: Path):
-        self.data_path = Path(data_path)
+        self.data_path = Path(data_path).resolve()
+        self._lock = FileLock(self.data_path.with_name(self.data_path.name + ".lock"), timeout=10)
+
+    @contextmanager
+    def locked(self) -> Iterator[None]:
+        self.data_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._lock:
+            yield
 
     def get_all(self) -> list[Cart]:
         try:
@@ -86,7 +93,7 @@ class CartRepository:
             )
 
     def create(self, cart: Cart) -> Cart:
-        with self._write_lock:
+        with self.locked():
             carts = self.get_all()
 
             if any(existing.id == cart.id for existing in carts):
@@ -101,7 +108,7 @@ class CartRepository:
         return cart
 
     def update(self, cart: Cart) -> Cart | None:
-        with self._write_lock:
+        with self.locked():
             carts = self.get_all()
 
             for index, existing in enumerate(carts):
