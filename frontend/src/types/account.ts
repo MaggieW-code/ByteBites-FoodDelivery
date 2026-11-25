@@ -45,3 +45,17 @@ export interface TokenResponse {
   token_type: "bearer";
   expires_at: string;
 }
+
+export interface UpdateCustomerRequest {
+  full_name?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface CreateDeliveryAddressRequest {
+  label: string;
+  address: string;
+}
+
+export type UpdateDeliveryAddressRequest = Partial<CreateDeliveryAddressRequest>;
+

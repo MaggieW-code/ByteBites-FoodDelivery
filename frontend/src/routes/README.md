@@ -12,7 +12,7 @@ URL-to-page routing: which page and layout render for each path, and who may see
 | `tests/RequireSignIn.test.tsx` | No token, valid token, rejected token (401/403), backend unreachable |
 | `CustomerRouter.ts` | Unused. Despite the name it holds a `fetch` call, not routes (F15, F28) |
 
-The real routes live in `App.tsx` today. `/account` is public; `/`, `/restaurants`,
+The real routes live in `App.tsx` today. `/account` is public; `/`, `/profile`, `/restaurants`,
 `/restaurants/:restaurantId`, `/manage/restaurants`, and the `*` 404 sit inside `RequireSignIn`.
 
 ## How it connects
