@@ -1,12 +1,16 @@
 """The /customers routes on the real app (epic #114)."""
 
+from collections.abc import Callable
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.repositories.accounts.account_repository import AccountRepository
+from backend.app.services.accounts.account_service import AccountService
 from backend.app.services.accounts.password_hashing import verify_password
+
+AuthHeaders = Callable[[str], dict[str, str]]
 
 
 def registration_body(**overrides: Any) -> dict[str, Any]:
@@ -124,3 +128,43 @@ def test_registered_customer_with_wrong_password_gets_401(client: TestClient) ->
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid email or password"
+
+
+# --- C3: retrieve ---
+
+
+def test_customer_gets_their_own_profile(client: TestClient, auth_headers: AuthHeaders) -> None:
+    response = client.get("/customers/me", headers=auth_headers("cara@example.com"))
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": "cust_001",
+        "full_name": "Cara Customer",
+        "email": "cara@example.com",
+        "phone": "+12505550100",
+        "is_active": True,
+        "role": "customer",
+        "delivery_addresses": [],
+    }
+
+
+def test_profile_without_a_token_is_401_with_challenge(client: TestClient) -> None:
+    response = client.get("/customers/me")
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+
+
+def test_profile_for_a_non_customer_is_403(client: TestClient, auth_headers: AuthHeaders) -> None:
+    response = client.get("/customers/me", headers=auth_headers("omar@example.com"))
+
+    assert response.status_code == 403
+
+
+def test_profile_for_a_deactivated_customer_is_403(
+    client: TestClient, auth_headers: AuthHeaders, account_service: AccountService
+) -> None:
+    headers = auth_headers("cara@example.com")
+    account_service.deactivate_account("cust_001")
+
+    assert client.get("/customers/me", headers=headers).status_code == 403
