@@ -14,7 +14,6 @@ plain methods, so services never see file paths or the file format.
 | `cart_repository.py` | `carts.json` (created on first write) | `get_all`, `get_by_id`, `get_active_by_customer_id`, `create`, `update` | `CartDataError`, `CartDataMalformedError` |
 | `accounts/account_repository.py` | `accounts.json` | `get_by_id`, `get_by_email` (trimmed, case-insensitive), `add`, `update` | `DataFileMissingError`, `DataFileMalformedError` |
 | `accounts/session_repository.py` | `sessions.json` (runtime data; a missing file means no sessions) | `get_by_token_hash`, `add`, `delete_by_token_hash`, `delete_by_account_id` (signs an account out everywhere; returns how many were removed) | `DataFileMalformedError` |
-
 | `json_list_store.py` | none (helper) | `JsonListStore.load`, `save` (writes a temporary file, then replaces the real one) | `DataFileError` → `DataFileMissingError`, `DataFileMalformedError` |
 
 The three restaurant and menu errors mean: the file is missing, the file isn't valid JSON, the
