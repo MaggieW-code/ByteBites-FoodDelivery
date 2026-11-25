@@ -71,6 +71,7 @@ docs/
 ├── README.md
 ├── agent_usage.md
 ├── architecture.md
+├── cart-decision-receipt.md
 ├── scrum.md
 ├── team-agreement.md
 └── PROVENANCE.md
@@ -163,13 +164,38 @@ every menu before they are saved.
 
 `MenuService.get_menu_item(menu_item_id)` finds a menu item using only its ID
 and returns a `MenuItem` with its current `price` (`Decimal`), `is_available`,
-`name`, and `restaurant_id`. Cart and Checkout use it to validate items and get
-current prices. It is a service method, not an HTTP endpoint. It raises:
+`name`, and `restaurant_id`. Cart uses the restaurant-scoped `get_menu()` method for
+validation and pricing. The ID lookup raises these service errors:
 
 - `MenuItemNotFoundError` if no item has that ID
 - `MenuRestaurantNotFoundError` if the item's restaurant does not exist
 - `MenuRestaurantInactiveError` if the item's restaurant is not active
 - `MenuDataIntegrityError` if more than one item in `menus.json` has that ID
+
+### Shopping cart
+
+Sign in with `POST /auth/sign-in` using your email and password, then send
+`Authorization: Bearer <access_token>` on every cart request. The verified
+customer account determines which cart is accessed.
+
+| Method and path | Behavior |
+|---|---|
+| `POST /cart` | Create or return the customer's active cart. |
+| `GET /cart` | Return the active cart, creating an empty one if needed. |
+| `POST /cart/items?restaurant_id=rest_001` | Add an item with body `{"menu_item_id":"item_001","quantity":2}`. Adding the same item increases its quantity. |
+| `PATCH /cart/items/{item_id}` | Set an existing item's quantity with body `{"quantity":3}`. |
+| `DELETE /cart/items/{item_id}` | Remove an item from the active cart. |
+| `DELETE /cart` | Empty the active cart and reset its restaurant. |
+
+Restaurant and item IDs are eight characters. Quantities must be positive
+integers. Every successful operation returns `200` and the cart, including
+server-calculated `subtotal` and `total` as decimal strings.
+
+Requests return `401` for missing, invalid, or expired tokens, `403` for
+inactive or non-customer accounts, `404` for missing resources, `409` for
+unavailable items, inactive restaurants, or restaurant mismatches on add,
+`422` for invalid inputs, and `500` for storage failures. See `/docs` for the
+endpoint schemas and responses.
 
 ## Run tests
 

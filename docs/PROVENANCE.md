@@ -504,3 +504,19 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Ran the full pytest suite (380 passed). Confirmed the new test fails without the
   handler. No new ruff warnings in the changed files.
 - PR: 155
+
+### Entry 31
+
+- Student(s): Yibing Wang
+- Artifact: Shopping cart models, JSON repository, business logic, authenticated API routes,
+  menu service integration, and backend tests.
+- Label: AI-ASSISTED
+- AI tool: OpenAI Codex
+- Purpose: Implement shopping cart management for #117 so signed-in customers can create,
+  view, update, and clear their own cart.
+- Influence: Codex assisted with the backend cart implementation and tests, including cart
+  persistence, customer ownership checks, and menu availability and single-restaurant rules.
+- Validation: PR #140 includes tests for cart models, JSON persistence, business rules,
+  and authenticated cart routes. The current checkout passed 380 backend tests and 18
+  frontend tests. Ruff was unavailable locally.
+- PR: #140

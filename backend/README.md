@@ -45,7 +45,7 @@ Prices (POST and PATCH) may be a number or a decimal string, must be 0 or more
 New item IDs are unique across all menus.
 
 `MenuService.get_menu_item(menu_item_id)` looks up a single item by ID across
-all menus for Cart and Checkout. It returns a `MenuItem` (price as `Decimal`,
+all menus for callers that need a lookup by item ID. It returns a `MenuItem` (price as `Decimal`,
 availability, restaurant ID) and raises `MenuItemNotFoundError`,
 `MenuRestaurantNotFoundError`, or `MenuRestaurantInactiveError`. If
 `menus.json` has the same item ID more than once, it raises
@@ -53,3 +53,25 @@ availability, restaurant ID) and raises `MenuItemNotFoundError`,
 `DuplicateMenuItemIdError` never leaves the service).
 
 Run isolated menu tests with `python3 -m pytest backend/tests/test_menu.py -v`.
+
+## Shopping cart
+
+The cart uses the shared bearer authentication dependency to resolve the customer.
+Each customer can have one active cart, and all items in that cart must belong
+to the same restaurant. Adding an item requires an active restaurant and an
+available item. Customers can still view or clear a cart if its restaurant
+becomes inactive.
+
+`CartService` reads the restaurant's menu using `get_menu(..., require_active=True)`
+on add and uses current menu prices to calculate the response totals. Viewing a
+cart uses the regular menu lookup so pricing can still be returned after
+restaurant deactivation. Removing the last item or clearing the cart resets
+its restaurant. `CartRepository` persists cart records in
+`backend/app/data/carts.json`. The file is created on the first write.
+
+The [root README](../README.md#shopping-cart) lists request examples and
+responses. Run cart tests from the repository root:
+
+```bash
+python -m pytest backend/tests/test_cart_model.py backend/tests/test_cart_repository.py backend/tests/test_cart_service.py backend/tests/test_cart_routes.py
+```

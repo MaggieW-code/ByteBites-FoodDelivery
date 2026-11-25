@@ -17,6 +17,7 @@ is valid.
 | | `Menu`, `MenuListItem` | A restaurant's menu as stored in `menus.json` and returned by `GET .../menu` |
 | | `CreateMenuItem`, `UpdateMenuItem` | Request bodies for `POST` / `PATCH .../menu` |
 | | `MenuItem` | A saved menu item (adds `id` and `restaurant_id`); response for `POST` / `PATCH` |
+| `cart_model.py` | `Cart`, `CartItem`, `CartStatus`, `AddCartItemRequest`, `UpdateCartItemRequest`, `CartResponse` | Persisted cart records, item mutation requests, and responses with computed totals |
 | `account_model.py` | `EightCharId`, `NonEmptyText`, `Role` | Shared type aliases, also imported by `auth_model.py` |
 | | `AccountCreationRequest` | Request body for registering. Password is `SecretStr` so it never prints |
 | | `AccountBase` → `CustomerAccount`, `RestaurantAccount`, `AdminAccount`; `Account` | API responses. `Account` picks the class from `role` |

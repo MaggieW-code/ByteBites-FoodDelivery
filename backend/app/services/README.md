@@ -11,6 +11,7 @@ workflow. Services can be tested without HTTP or real files.
 |---|---|---|
 | `restaurant_service.py` | `get_restaurants(cuisine)` (case-insensitive filter), `get_restaurant_by_id`, `create_restaurant` (new 8-char ID, `rating=0.0`, `is_active=True`), `update_restaurant` | `RestaurantNotFoundError` |
 | `menu_service.py` | `get_menu` (empty CAD menu if none stored), `add_menu` (new 8-char ID), `update_menu` | `MenuRestaurantNotFoundError`, `MenuItemNotFoundError` |
+| `cart_service.py` | Get or create the active cart, add items, set quantities, remove items, clear the cart, and calculate totals using current menu prices | `CartServiceError` subclasses for validation, missing or unavailable items, restaurant mismatch, and storage failures |
 | `auth_service.py` | `sign_in` (new random token, stores only its SHA-256, expires after `token_lifetime`), `resolve_token` → `AuthenticatedAccount`, `sign_out`, `register_account` (new 8-char ID, hashed password, default role `customer`), `get_account`, `deactivate_account` | `InvalidCredentialsError` (same message for unknown email and wrong password), `AccountDeactivatedError`, `InvalidTokenError`, `SessionExpiredError`, `EmailAlreadyRegisteredError`, `AccountNotFoundError`, all subclasses of `AuthError` |
 | `password_hashing.py` | `hash_password`, `verify_password` (scrypt, random salt, constant-time compare) | `MalformedPasswordHashError` |
 
