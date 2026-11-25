@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 
 from backend.app.models.accounts.auth_model import Session
-from backend.app.repositories.json_list_store import DataFileMalformedError
 from backend.app.repositories.accounts.session_repository import SessionRepository
+from backend.app.repositories.json_list_store import DataFileMalformedError
 
 
 def make_session(token_hash: str = "hash_of_new_token", account_id: str = "ownr_001") -> Session:
