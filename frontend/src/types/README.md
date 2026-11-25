@@ -11,6 +11,7 @@ of every request and response.
 |---|---|---|
 | `restaurant.ts` | `Restaurant` | `backend/app/models/restaurant_model.py` `Restaurant` |
 | `menu.ts` | `Menu`, `MenuItem` | `backend/app/models/menu_model.py` (the `GET` menu shape) |
+| `account.ts` | `Account` (union by `role`), `CustomerAccount`, `RestaurantAccount`, `AdminAccount`, `DeliveryAddress`, `AccountCreationRequest`, `SignInRequest`, `TokenResponse` | `backend/app/models/accounts/account_model.py` and `auth_model.py` |
 | `restaurantCard.ts` | `RestaurantCardProps` | Nothing: props for the unused `RestaurantCard` component |
 
 ## How it connects

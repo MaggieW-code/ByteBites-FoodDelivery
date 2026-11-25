@@ -10,6 +10,7 @@ one component or page can share, kept out of the JSX.
 | File | Hook | Used by |
 |---|---|---|
 | `useDebounce.ts` | `useDebounce(value, delayMs = 250)`: returns `value` only after it stops changing for `delayMs` | `DiscoverView` (name search) |
+| `useCurrentAccount.ts` | `useCurrentAccount()`: asks `GET /auth/me` who the saved token belongs to. Returns `loading`, `signed-in` (with the account), `signed-out` (no token, or the backend rejected it, which also forgets it), or `error` (backend unreachable) | `RequireSignIn` |
 | `tests/test_useDebounce.test.ts` | Vitest + `renderHook` with fake timers | |
 
 ## How it connects
