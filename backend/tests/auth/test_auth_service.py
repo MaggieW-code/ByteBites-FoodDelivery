@@ -1,4 +1,5 @@
 import hashlib
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 
@@ -87,12 +88,23 @@ def test_token_still_works_just_before_expiry(auth_service: AuthService, clock: 
     assert auth_service.resolve_token(token).id == "cust_001"
 
 
-def test_deactivating_an_account_blocks_its_existing_token(auth_service: AuthService, account_service: AccountService) -> None:
+def test_inactive_account_blocks_a_token_that_is_still_live(
+    auth_service: AuthService, deactivate_in_storage: Callable[[str], None]
+) -> None:
+    token = sign_in(auth_service)
+
+    deactivate_in_storage("cust_001")
+
+    with pytest.raises(AccountDeactivatedError):
+        auth_service.resolve_token(token)
+
+
+def test_deactivating_through_the_service_ends_the_session(auth_service: AuthService, account_service: AccountService) -> None:
     token = sign_in(auth_service)
 
     account_service.deactivate_account("cust_001")
 
-    with pytest.raises(AccountDeactivatedError):
+    with pytest.raises(InvalidTokenError):
         auth_service.resolve_token(token)
 
 

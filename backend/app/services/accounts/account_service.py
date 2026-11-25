@@ -14,6 +14,7 @@ from backend.app.models.accounts.account_model import (
     UpdateDeliveryAddressRequest,
 )
 from backend.app.repositories.accounts.account_repository import AccountRepository
+from backend.app.repositories.accounts.session_repository import SessionRepository
 from backend.app.services.accounts.account_factory import AccountFactory
 
 account_adapter = TypeAdapter(Account)
@@ -37,8 +38,15 @@ class DeliveryAddressNotFoundError(AccountError):
 
 
 class AccountService:
-    def __init__(self, account_repository: AccountRepository, *, account_factory: AccountFactory | None = None) -> None:
+    def __init__(
+        self,
+        account_repository: AccountRepository,
+        session_repository: SessionRepository,
+        *,
+        account_factory: AccountFactory | None = None,
+    ) -> None:
         self.account_repository = account_repository
+        self.session_repository = session_repository
         self.account_factory = account_factory or AccountFactory()
 
     def register_account(self, request: AccountCreationRequest, role: Role = "customer") -> Account:
@@ -89,8 +97,10 @@ class AccountService:
         self.account_repository.update(customer.model_copy(update={"delivery_addresses": addresses}))
 
     def deactivate_account(self, account_id: str) -> Account:
+        """Mark the account inactive and end all its sessions, so its tokens stop working at once (401)."""
         stored = self.get_stored_account(account_id).model_copy(update={"is_active": False})
         self.account_repository.update(stored)
+        self.session_repository.delete_by_account_id(account_id)
         return to_public(stored)
 
     def get_stored_account(self, account_id: str) -> StoredAccount:

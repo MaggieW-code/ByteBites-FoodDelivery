@@ -174,6 +174,9 @@ Parcel serves the app locally and prints the URL. See
   address with that ID.
 - `DELETE /customers/me/addresses/{address_id}` — remove one address. Returns
   `204`, or `404`. A customer can only reach their own addresses.
+- `POST /customers/me/deactivate` — deactivate the signed-in customer and sign
+  them out on every device. Returns `204`. Afterwards their tokens get `401`
+  and signing in again gets `403`.
 
 Request bodies that fail validation return `422`.
 

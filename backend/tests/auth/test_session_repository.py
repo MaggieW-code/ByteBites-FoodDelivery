@@ -52,6 +52,22 @@ def test_delete_unknown_session_returns_false(session_repository: SessionReposit
     assert session_repository.delete_by_token_hash("unknown") is False
 
 
+def test_delete_by_account_removes_all_of_its_sessions_only(
+    session_repository: SessionRepository, sessions_file: Path
+) -> None:
+    session_repository.add(make_session("hash_of_cara_phone", account_id="cust_001"))
+    session_repository.add(make_session("hash_of_omar_token", account_id="ownr_001"))
+
+    assert session_repository.delete_by_account_id("cust_001") == 2
+
+    reloaded = SessionRepository(sessions_file)
+    assert [session.token_hash for session in reloaded.load_all()] == ["hash_of_omar_token"]
+
+
+def test_delete_by_account_without_sessions_returns_zero(session_repository: SessionRepository) -> None:
+    assert session_repository.delete_by_account_id("nope_000") == 0
+
+
 def test_missing_sessions_file_means_no_sessions(tmp_path: Path) -> None:
     sessions_file = tmp_path / "sessions.json"
     repository = SessionRepository(sessions_file)

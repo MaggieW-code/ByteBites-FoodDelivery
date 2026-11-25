@@ -32,7 +32,7 @@ def get_auth_service() -> AuthService:
 
 
 def get_account_service() -> AccountService:
-    return AccountService(AccountRepository(get_accounts_data_path()))
+    return AccountService(AccountRepository(get_accounts_data_path()), SessionRepository(get_sessions_data_path()))
 
 
 def get_bearer_token(
