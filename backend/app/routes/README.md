@@ -58,3 +58,8 @@ Each `*_routes.py` file and `health.py` exposes a `router` that `main.py` regist
   - Error handling is inconsistent across routes (F21): `POST .../menu` handles no errors,
     `PATCH .../menu/{id}` hardcodes its message and drops `from error`, and only two
     routes document their 404 in `responses`.
+
+auth_routes.py provides POST /auth/sign-in, GET /auth/me, and POST /auth/sign-out.
+order_routes.py uses the shared CurrentCustomer dependency for order details and history.
+
+POST /checkout saves an order for the signed-in customer, then closes the cart. It returns 201 with the saved order, 404 for an inaccessible cart, or 409 for an invalid purchase.

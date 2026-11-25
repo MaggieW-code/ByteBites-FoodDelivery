@@ -1,11 +1,14 @@
-from pathlib import Path
-
+from backend.app.config import get_data_file_path, get_restaurant_data_path
 from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.services.menu_service import MenuService
 
-data_directory = Path(__file__).resolve().parent / "data"
-menu_service = MenuService(
-    MenuRepository(data_directory / "menus.json"),
-    RestaurantRepository(data_directory / "restaurants.json"),
-)
+
+def get_menu_service() -> MenuService:
+    return MenuService(
+        MenuRepository(get_data_file_path("MENUS_PATH", "menus.json")),
+        RestaurantRepository(get_restaurant_data_path()),
+    )
+
+
+menu_service = get_menu_service()

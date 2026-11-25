@@ -52,3 +52,7 @@ in one file.
   `monkeypatch.setitem(app.dependency_overrides, <provider>, ...)` in a feature conftest that
   extends `client` (see `auth/conftest.py`). Proposed: restaurant and menu move to this after
   F1, and `monkeypatch.setattr` on route modules goes away.
+
+test_order_auth_flow.py exercises sign-in, order ownership, and token revocation against the configured stores.
+
+test_order_checkout_flow.py covers signed-in checkout, order access, menu read errors, persistence failure, and concurrent retries.

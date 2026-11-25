@@ -561,3 +561,42 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   and authenticated cart routes. The current checkout passed 380 backend tests and 18
   frontend tests. Ruff was unavailable locally.
 - PR: #140
+
+### Entry 34
+
+- Student(s): Guransh Sandhu
+- Artifact: backend/app/services/checkout_service.py (new), backend/app/services/cart_service.py,
+  backend/app/models/checkout_model.py (new), backend/app/models/cart_model.py,
+  backend/app/repositories/cart_repository.py, backend/app/routes/checkout_routes.py (new),
+  backend/app/routes/cart_routes.py, backend/app/dependencies/commerce.py (new),
+  backend/app/menu_dependencies.py, main.py, .gitignore, backend/tests/test_checkout_service.py (new),
+  backend/tests/test_checkout_routes.py (new), backend/tests/test_order_checkout_flow.py (new),
+  backend/tests/test_cart_service.py, backend/app/*/README.md, backend/tests/README.md
+- Label: AI-GENERATED
+- AI tool: OpenAI Codex
+- Purpose: Implement signed-in cart checkout for #135 and integrate it with the shared
+  customer authentication, cart, menu, and order services.
+- Influence: Codex drafted checkout logic, route wiring, cart locking, and automated tests.
+  Maison followed up by moving the restaurant availability check into MenuService.
+- Validation: 583 backend tests and 48 frontend tests passed on the reviewed checkout
+  commit. Ruff lint and format checks passed on all 14 Python files changed by the PR.
+  Integration tests covered authenticated checkout and order retrieval, duplicate requests,
+  and cart preservation after order storage or menu read failures.
+- PR: 144
+
+### Entry 35
+
+- Student(s):
+- Artifact: backend/app/models/order_model.py (new), backend/app/repositories/order_repository.py (new),
+  backend/app/services/order_service.py (new), backend/app/routes/order_routes.py (new),
+  backend/app/routes/auth_dependencies.py (new), backend/app/dependencies/orders.py (new),
+  backend/tests/test_order_model.py (new), backend/tests/test_order_repository.py (new),
+  backend/tests/test_order_auth_flow.py (new),
+  backend/tests/test_order_routes.py (new), backend/tests/test_order_service.py (new), requirements.txt, .gitignore,
+  backend/app/*/README.md
+- Label: <!-- AI-GENERATED | AI-ASSISTED | AI-REVISED | NO-AI -->
+- AI tool:
+- Purpose:
+- Influence:
+- Validation:
+- PR: 133, 143

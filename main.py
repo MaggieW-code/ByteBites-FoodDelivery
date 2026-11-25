@@ -6,8 +6,10 @@ from backend.app.routes.accounts.auth_routes import router as auth_router
 from backend.app.routes.accounts.customer_routes import router as customer_router
 from backend.app.routes.cart_routes import handle_cart_service_error
 from backend.app.routes.cart_routes import router as cart_router
+from backend.app.routes.checkout_routes import router as checkout_router
 from backend.app.routes.health import router as health_router
 from backend.app.routes.menu_routes import router as menu_router
+from backend.app.routes.order_routes import router as order_router
 from backend.app.routes.restaurant_routes import router as restaurant_router
 from backend.app.services.cart_service import CartServiceError
 from backend.app.validation_errors import request_validation_error_handler
@@ -36,4 +38,6 @@ app.include_router(menu_router)
 app.include_router(auth_router)
 app.include_router(customer_router)
 app.include_router(cart_router)
+app.include_router(order_router)
+app.include_router(checkout_router)
 app.add_exception_handler(CartServiceError, handle_cart_service_error)

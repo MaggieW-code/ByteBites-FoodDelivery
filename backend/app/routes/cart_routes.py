@@ -1,13 +1,11 @@
-from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi import Path as PathParameter
 from fastapi.responses import JSONResponse
 
-from backend.app.menu_dependencies import menu_service
+from backend.app.dependencies.commerce import get_cart_service
 from backend.app.models.cart_model import AddCartItemRequest, CartResponse, UpdateCartItemRequest
-from backend.app.repositories.cart_repository import CartRepository
 from backend.app.routes.cart_auth import get_authenticated_customer_id
 from backend.app.services.cart_service import (
     CartItemNotFoundError,
@@ -31,15 +29,6 @@ router = APIRouter(
         500: {"description": "Unable to access cart data"},
     },
 )
-data_directory = Path(__file__).resolve().parents[1] / "data"
-cart_service = CartService(
-    CartRepository(data_directory / "carts.json"),
-    menu_service,
-)
-
-
-def get_cart_service() -> CartService:
-    return cart_service
 
 
 async def handle_cart_service_error(_request: Request, error: CartServiceError) -> JSONResponse:
@@ -105,9 +94,7 @@ def add_item(
     description="Set the quantity of an item already in the active cart.",
     responses={404: {"description": "Item not found in the cart or menu"}},
 )
-def update_item(
-    item_id: ItemId, data: UpdateCartItemRequest, customer_id: CustomerId, service: Service
-) -> CartResponse:
+def update_item(item_id: ItemId, data: UpdateCartItemRequest, customer_id: CustomerId, service: Service) -> CartResponse:
     return service.update_item_quantity(customer_id, item_id, data.quantity)
 
 

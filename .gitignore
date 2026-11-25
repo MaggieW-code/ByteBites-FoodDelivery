@@ -7,6 +7,7 @@ __pycache__/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
+/backend/app/data/orders.json.lock
 
 # Virtual environments
 .venv/
@@ -37,3 +38,10 @@ frontend/dist/
 
 # Session Tokens
 backend/app/data/sessions.json
+
+# Local order records
+/backend/app/data/orders.json
+
+# Local cart storage
+/backend/app/data/carts.json
+/backend/app/data/carts.json.lock

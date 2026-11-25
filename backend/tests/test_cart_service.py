@@ -1,4 +1,3 @@
-
 import json
 from decimal import Decimal
 
@@ -24,32 +23,36 @@ from backend.app.services.menu_service import MenuService
 def service(tmp_path):
     restaurant_path = tmp_path / "restaurants.json"
     restaurant_path.write_text(
-        json.dumps([
-            {"id": "rest_001", "is_active": True},
-            {"id": "rest_002", "is_active": True},
-        ]),
+        json.dumps(
+            [
+                {"id": "rest_001", "is_active": True},
+                {"id": "rest_002", "is_active": True},
+            ]
+        ),
         encoding="utf-8",
     )
     menu_path = tmp_path / "menus.json"
     menu_path.write_text(
-        json.dumps([
-            {
-                "restaurant_id": "rest_001",
-                "currency": "CAD",
-                "items": [
-                    {"id": "item_001", "name": "item_001", "description": "", "price": "0.10", "is_available": True},
-                    {"id": "item_002", "name": "item_002", "description": "", "price": 2.35, "is_available": True},
-                    {"id": "item_003", "name": "item_003", "description": "", "price": "1.00", "is_available": False},
-                ],
-            },
-            {
-                "restaurant_id": "rest_002",
-                "currency": "CAD",
-                "items": [
-                    {"id": "item_004", "name": "item_004", "description": "", "price": "4.25", "is_available": True}
-                ],
-            },
-        ]),
+        json.dumps(
+            [
+                {
+                    "restaurant_id": "rest_001",
+                    "currency": "CAD",
+                    "items": [
+                        {"id": "item_001", "name": "item_001", "description": "", "price": "0.10", "is_available": True},
+                        {"id": "item_002", "name": "item_002", "description": "", "price": 2.35, "is_available": True},
+                        {"id": "item_003", "name": "item_003", "description": "", "price": "1.00", "is_available": False},
+                    ],
+                },
+                {
+                    "restaurant_id": "rest_002",
+                    "currency": "CAD",
+                    "items": [
+                        {"id": "item_004", "name": "item_004", "description": "", "price": "4.25", "is_available": True}
+                    ],
+                },
+            ]
+        ),
         encoding="utf-8",
     )
 
@@ -241,3 +244,31 @@ def test_invalid_restaurant_id(service, restaurant_id):
         service.add_item("customer", restaurant_id, "item_001", 1)
 
     assert service.cart_repository.get_all() == []
+
+
+def test_checkout_session_only_exposes_selected_customer_cart(service):
+    cart = service.add_item("customer", "rest_001", "item_001", 2)
+
+    with service.checkout_session("other", cart.id) as session:
+        assert session.cart is None
+    with service.checkout_session("customer", "other-cart") as session:
+        assert session.cart is None
+
+    assert service.cart_repository.get_by_id(cart.id).status == CartStatus.ACTIVE
+
+
+def test_checkout_session_holds_snapshot_until_order_save(service):
+    cart = service.add_item("customer", "rest_001", "item_001", 2)
+
+    with service.checkout_session("customer", cart.id) as session:
+        assert session.cart.customer_id == "customer"
+        assert session.cart.restaurant_id == "rest_001"
+        assert session.cart.items == (("item_001", 2),)
+        assert service.cart_repository.get_by_id(cart.id).status == CartStatus.ACTIVE
+    assert service.cart_repository.get_by_id(cart.id).status == CartStatus.ACTIVE
+
+    with service.checkout_session("customer", cart.id) as session:
+        session.close_cart()
+
+    assert service.cart_repository.get_by_id(cart.id).status == CartStatus.CHECKED_OUT
+    assert service.get_cart("customer").id != cart.id

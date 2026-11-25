@@ -41,3 +41,5 @@ For local demos and the TA only. Never reuse these passwords anywhere real.
 |---|---|---|
 | `customer@example.com` | `demo-password-123` | customer |
 | `owner@example.com` | `owner-password-1234` | restaurant_owner |
+
+CARTS_PATH selects the cart store. MENUS_PATH selects the current menu for pricing and checkout.
