@@ -489,3 +489,18 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Ran the full pytest suite (267 passed). Confirmed the new PATCH test fails when the
   route goes back to plain `str` parameters and the GET menu test fails with `= Path(...)`. No new ruff warnings in the changed files.
 - PR: 132
+
+### Entry 30
+
+- Student(s): Junho Kim
+- Artifact: backend/app/routes/menu_routes.py, backend/tests/test_menu_routes.py,
+  backend/app/routes/README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Handle `MenuReadError` from #140 in the GET menu route so unreadable menu data
+  returns a clear 500 instead of an unexplained one.
+- Influence: The AI added the `MenuReadError` handler and the 500 entry in `responses`, wrote a
+  regression test with three kinds of broken menu data, and updated the routes README.
+- Validation: Ran the full pytest suite (380 passed). Confirmed the new test fails without the
+  handler. No new ruff warnings in the changed files.
+- PR: 155
