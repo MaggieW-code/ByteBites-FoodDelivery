@@ -10,6 +10,7 @@ records, and the AI-use log the course requires.
 | File | What it holds | Updated when |
 |---|---|---|
 | `architecture.md` | Layer responsibilities (backend and frontend) and the feature-to-file map | A layer, rule, or feature file is added or changes role |
+| `architecture_improvements.md` | Milestone 2 required architectural improvements, one section per developer (problem, change, evidence, files) | A developer makes or records an improvement |
 | `scrum.md` | Meeting notes, task split, decisions, and blockers per milestone | After each team meeting or milestone review |
 | `PROVENANCE.md` | Numbered AI-use entries (student, artifact, label, tool, purpose, influence, validation, PR) | Before every PR that used AI |
 | `agent_usage.md` | How to use AI agents here: what's set up, the skills, good habits, example requests | When a skill, agent rule, or tool setup changes |

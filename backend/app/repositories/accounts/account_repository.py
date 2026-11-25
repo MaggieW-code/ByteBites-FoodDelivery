@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from backend.app.models.account_model import StoredAccount
+from backend.app.models.accounts.account_model import StoredAccount
 from backend.app.repositories.json_list_store import DataFileMalformedError, JsonListStore
 
 stored_accounts_adapter = TypeAdapter(list[StoredAccount])

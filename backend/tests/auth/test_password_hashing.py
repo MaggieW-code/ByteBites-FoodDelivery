@@ -1,6 +1,6 @@
 import pytest
 
-from backend.app.services.password_hashing import MalformedPasswordHashError, hash_password, verify_password
+from backend.app.services.accounts.password_hashing import MalformedPasswordHashError, hash_password, verify_password
 
 
 def test_hash_is_not_the_password(test_password_hash: str) -> None:

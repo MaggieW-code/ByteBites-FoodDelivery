@@ -4,14 +4,14 @@ from datetime import datetime, timezone
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app.dependencies.auth import get_auth_service
+from backend.app.dependencies.auth import get_account_service, get_auth_service
 from backend.app.repositories.cart_repository import CartRepository
 from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
 from backend.app.routes.cart_routes import get_cart_service
+from backend.app.services.accounts.password_hashing import hash_password
 from backend.app.services.cart_service import CartService, CartValidationError
 from backend.app.services.menu_service import MenuService
-from backend.app.services.password_hashing import hash_password
 from main import app
 
 
@@ -195,8 +195,8 @@ def test_non_customer_cannot_open_cart(cart_api, cart_accounts):
 
 def test_deactivated_customer_cannot_open_cart(authenticated_api):
     client, repository = authenticated_api
-    get_auth_service().deactivate_account("cust_001")
-    assert client.post("/cart").status_code == 403
+    get_account_service().deactivate_account("cust_001")
+    assert client.post("/cart").status_code == 401
     assert repository.get_all() == []
 
 

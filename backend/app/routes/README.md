@@ -13,9 +13,10 @@ business logic and no file access.
 | `health.py` | `GET /health` | none | none |
 | `restaurant_routes.py` | `GET /restaurants?cuisine=`, `GET /restaurants/{restaurant_id}`, `POST /restaurants` (201), `PATCH /restaurants/{restaurant_id}` | `RestaurantService` | `RestaurantNotFoundError` → 404 |
 | `menu_routes.py` | `GET /restaurants/{restaurant_id}/menu`, `POST /restaurants/{restaurant_id}/menu` (201), `PATCH /restaurants/{restaurant_id}/menu/{menu_item_id}` | `MenuService` | `MenuRestaurantNotFoundError` → 404, `MenuItemNotFoundError` → 404, `MenuReadError` → 500 (`GET` menu) |
-| `auth_routes.py` | `POST /auth/sign-in`, `GET /auth/me`, `POST /auth/sign-out` (204, also for unknown tokens) | `AuthService` | `InvalidCredentialsError` → 401 with `WWW-Authenticate: Bearer`, `AccountDeactivatedError` → 403. Token errors come from `dependencies/auth.py` |
 | `cart_auth.py` | Customer identity dependency for all cart routes | Shared `require_role("customer")` dependency | Missing, invalid, or expired token → 401. Deactivated account or wrong role → 403. |
 | `cart_routes.py` | `GET /cart`, `POST /cart`, `DELETE /cart`, `POST /cart/items`, `PATCH /cart/items/{item_id}`, `DELETE /cart/items/{item_id}` | `CartService` | Missing resources → 404, conflicts → 409, validation → 422, storage errors → 500. Authentication uses `cart_auth.py`. |
+| `accounts/auth_routes.py` | `POST /auth/sign-in`, `GET /auth/me`, `POST /auth/sign-out` (204, also for unknown tokens) | `AuthService`; `/auth/me` uses `AccountService` | `InvalidCredentialsError` → 401 with `WWW-Authenticate: Bearer`, `AccountDeactivatedError` → 403. Token errors come from `dependencies/auth.py` |
+| `accounts/customer_routes.py` | `POST /customers` (201, registers a customer), `GET /customers/me`, `PATCH /customers/me`, `POST /customers/me/addresses` (201), `PATCH`/`DELETE /customers/me/addresses/{address_id}` (204), `POST /customers/me/deactivate` (204) (customers only, via `CurrentCustomer` = `require_role("customer")`) | `AccountService` | `EmailAlreadyRegisteredError` → 409, `DeliveryAddressNotFoundError` → 404. Token and role errors (401, 403) come from `dependencies/auth.py` |
 
 Each `*_routes.py` file and `health.py` exposes a `router` that `main.py` registers with `app.include_router`.
 
@@ -24,7 +25,7 @@ Each `*_routes.py` file and `health.py` exposes a `router` that `main.py` regist
 - `main.py` (repo root) registers every router. A new feature's router is not reachable
   until it is added there.
 - Routes call `services/` only, never `repositories/`.
-- `auth_routes.py` receives its service with `Depends(get_auth_service)` from `dependencies/`,
+- `accounts/auth_routes.py` and `accounts/customer_routes.py` receive their service with `Depends(get_auth_service)` or `Depends(get_account_service)` from `dependencies/`,
   which builds it from `config.py` paths. Routes never construct services or repositories.
   Protected routes declare `get_current_account` or `require_role(...)` from the same place.
 - Request bodies and responses are typed with `models/`, so FastAPI rejects bad input with a
@@ -49,7 +50,7 @@ Each `*_routes.py` file and `health.py` exposes a `router` that `main.py` regist
   `restaurant_id: RestaurantId = Path(...)`: FastAPI then silently drops the 8-character rule.
 - Not yet true:
   - Restaurant and menu routes build their own repositories and know where `data/` is
-    (F1, F2). `auth_routes.py` shows the target: `Depends` on a provider in `dependencies/`.
+    (F1, F2). `accounts/auth_routes.py` shows the target: `Depends` on a provider in `dependencies/`.
     `restaurant_routes.py` uses a path relative to the working directory.
   - `PATCH /restaurants/{id}` catches `ValueError` and checks for `None` (F17).
   - Only the `GET` detail and menu routes validate `restaurant_id`. `menu_item_id` is

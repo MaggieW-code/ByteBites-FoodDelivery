@@ -1,6 +1,6 @@
 """The auth dependencies on a small app of their own; the real routes come in the routes branch."""
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import Annotated
 
 import pytest
@@ -8,8 +8,8 @@ from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
 from backend.app.dependencies.auth import get_auth_service, get_current_account, require_role
-from backend.app.models.auth_model import AuthenticatedAccount, SignInRequest
-from backend.app.services.auth_service import AuthService
+from backend.app.models.accounts.auth_model import AuthenticatedAccount, SignInRequest
+from backend.app.services.accounts.auth_service import AuthService
 from backend.tests.auth.auth_helpers import TEST_PASSWORD, TOKEN_LIFETIME, FakeClock
 
 probe_app = FastAPI()
@@ -67,9 +67,11 @@ def test_expired_token_is_401(probe_client: TestClient, auth_service: AuthServic
     assert "expired" in response.json()["detail"]
 
 
-def test_deactivated_account_is_403(probe_client: TestClient, auth_service: AuthService) -> None:
+def test_deactivated_account_is_403(
+    probe_client: TestClient, auth_service: AuthService, deactivate_in_storage: Callable[[str], None]
+) -> None:
     headers = bearer(auth_service, "cara@example.com")
-    auth_service.deactivate_account("cust_001")
+    deactivate_in_storage("cust_001")
 
     assert probe_client.get("/whoami", headers=headers).status_code == 403
 

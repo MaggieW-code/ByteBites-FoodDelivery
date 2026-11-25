@@ -2,14 +2,22 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.app.dependencies.auth import BEARER_CHALLENGE, get_auth_service, get_bearer_token, get_current_account
-from backend.app.models.account_model import Account
-from backend.app.models.auth_model import AuthenticatedAccount, SignInRequest, TokenResponse
-from backend.app.services.auth_service import AccountDeactivatedError, AuthService, InvalidCredentialsError
+from backend.app.dependencies.auth import (
+    BEARER_CHALLENGE,
+    get_account_service,
+    get_auth_service,
+    get_bearer_token,
+    get_current_account,
+)
+from backend.app.models.accounts.account_model import Account
+from backend.app.models.accounts.auth_model import AuthenticatedAccount, SignInRequest, TokenResponse
+from backend.app.services.accounts.account_service import AccountService
+from backend.app.services.accounts.auth_service import AccountDeactivatedError, AuthService, InvalidCredentialsError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
+AccountServiceDependency = Annotated[AccountService, Depends(get_account_service)]
 
 
 @router.post(
@@ -39,8 +47,16 @@ def sign_in(request: SignInRequest, auth_service: AuthServiceDependency) -> Toke
         403: {"description": "Account is deactivated"},
     },
 )
-def me(account: Annotated[AuthenticatedAccount, Depends(get_current_account)], auth_service: AuthServiceDependency) -> Account:
-    return auth_service.get_account(account.id)
+def me(
+    account: Annotated[AuthenticatedAccount, Depends(get_current_account)], account_service: AccountServiceDependency
+) -> Account:
+    """Identity endpoint: "who am I?" for any signed-in role.
+
+    Overlaps with `GET /customers/me` for customers on purpose. The frontend calls this right
+    after sign-in to learn the caller's role, and it is the only profile route owners and
+    admins have. Role resources (`/customers/me`, later `/owners/me`) hold the full profiles.
+    """
+    return account_service.get_account(account.id)
 
 
 @router.post(

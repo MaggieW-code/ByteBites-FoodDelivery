@@ -71,7 +71,7 @@ docs/
 ├── README.md
 ├── agent_usage.md
 ├── architecture.md
-├── cart-decision-receipt.md
+├── architecture_improvements.md
 ├── scrum.md
 ├── team-agreement.md
 └── PROVENANCE.md
@@ -148,6 +148,36 @@ Parcel serves the app locally and prints the URL. See
   `name`, `category`, `price`, or `is_available`. Returns `404` if the menu
   item does not exist for that restaurant and `422` if `restaurant_id` or
   `menu_item_id` is not 8 characters; nothing is saved in either case.
+
+### Customers
+
+- `POST /customers` — registers a customer. Body: `full_name`, `email`,
+  `phone` (all required; `email` must be a valid address; `phone` must be a real Canadian number in
+  any common format, e.g. `(250) 222-1234`, and is returned as `+12502221234`) and
+  `password` (8–128 characters).
+  Returns `201` with the new customer (`id`, `full_name`, `email`, `phone`,
+  `is_active`, `role`, `delivery_addresses`), never the password. A `role`
+  in the body is ignored: this endpoint only creates customers. Returns
+  `409` if the email is already registered (emails are trimmed and
+  lowercased first). Sign in afterwards with `POST /auth/sign-in`.
+- `GET /customers/me` — the signed-in customer's own profile (same shape as
+  above). Send `Authorization: Bearer <token>`. Returns `401` without a valid
+  token and `403` for a non-customer or a deactivated account.
+- `PATCH /customers/me` — update the signed-in customer. Send only the fields to
+  change: `full_name`, `email`, `phone`. Same rules as registration. Returns
+  `200` with the updated profile, `409` if the email belongs to another account,
+  and `422` for an empty body, a `null`, or an invalid value. `role`,
+  `is_active`, `password` and addresses can't be changed here.
+- `POST /customers/me/addresses` — add a delivery address (`label`, `address`).
+  Returns `201` with the address and its new 8-character `id`.
+- `PATCH /customers/me/addresses/{address_id}` — change one address; send only
+  `label` and/or `address`. Returns `200`, or `404` if the customer has no
+  address with that ID.
+- `DELETE /customers/me/addresses/{address_id}` — remove one address. Returns
+  `204`, or `404`. A customer can only reach their own addresses.
+- `POST /customers/me/deactivate` — deactivate the signed-in customer and sign
+  them out on every device. Returns `204`. Afterwards their tokens get `401`
+  and signing in again gets `403`.
 
 Request bodies that fail validation return `422`.
 

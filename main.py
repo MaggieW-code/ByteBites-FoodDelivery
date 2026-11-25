@@ -2,8 +2,10 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.routes.auth_routes import router as auth_router
-from backend.app.routes.cart_routes import handle_cart_service_error, router as cart_router
+from backend.app.routes.accounts.auth_routes import router as auth_router
+from backend.app.routes.accounts.customer_routes import router as customer_router
+from backend.app.routes.cart_routes import handle_cart_service_error
+from backend.app.routes.cart_routes import router as cart_router
 from backend.app.routes.health import router as health_router
 from backend.app.routes.menu_routes import router as menu_router
 from backend.app.routes.restaurant_routes import router as restaurant_router
@@ -32,5 +34,6 @@ app.include_router(health_router)
 app.include_router(restaurant_router)
 app.include_router(menu_router)
 app.include_router(auth_router)
+app.include_router(customer_router)
 app.include_router(cart_router)
 app.add_exception_handler(CartServiceError, handle_cart_service_error)

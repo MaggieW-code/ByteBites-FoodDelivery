@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from backend.app.models.auth_model import AuthenticatedAccount, Session, SignInRequest, TokenResponse
+from backend.app.models.accounts.auth_model import AuthenticatedAccount, Session, SignInRequest, TokenResponse
 
 
 @pytest.fixture
@@ -40,6 +40,17 @@ def test_sign_in_request_hides_password_and_normalizes_email() -> None:
     assert "hunter2" not in repr(request)
     assert request.password.get_secret_value() == "hunter2"
     assert request.email == "cara@example.com"
+
+
+def test_sign_in_request_does_not_check_email_format() -> None:
+    """Format is checked when an email is registered or changed; sign-in only looks it up."""
+    assert SignInRequest(email=" Old@Bytebites.TEST ", password="hunter2").email == "old@bytebites.test"
+
+
+@pytest.mark.parametrize("email", ["", "x" * 255, 123], ids=["empty", "too-long", "not-text"])
+def test_sign_in_request_still_rejects_empty_oversized_or_non_text_email(email: Any) -> None:
+    with pytest.raises(ValidationError):
+        SignInRequest(email=email, password="hunter2")
 
 
 def test_session_round_trips_through_json(session_fields: dict[str, Any]) -> None:

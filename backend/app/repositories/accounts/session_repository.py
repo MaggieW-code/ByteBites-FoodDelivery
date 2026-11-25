@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from backend.app.models.auth_model import Session
+from backend.app.models.accounts.auth_model import Session
 from backend.app.repositories.json_list_store import DataFileMalformedError, JsonListStore
 
 sessions_adapter = TypeAdapter(list[Session])
@@ -30,6 +30,15 @@ class SessionRepository:
             return False
         self.save_all(remaining)
         return True
+
+    def delete_by_account_id(self, account_id: str) -> int:
+        """Sign an account out everywhere. Returns how many sessions were removed."""
+        sessions = self.load_all()
+        remaining = [session for session in sessions if session.account_id != account_id]
+        removed_count = len(sessions) - len(remaining)
+        if removed_count:
+            self.save_all(remaining)
+        return removed_count
 
     def load_all(self) -> list[Session]:
         try:

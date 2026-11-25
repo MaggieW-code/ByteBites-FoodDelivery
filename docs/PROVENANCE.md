@@ -520,3 +520,44 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
   and authenticated cart routes. The current checkout passed 380 backend tests and 18
   frontend tests. Ruff was unavailable locally.
 - PR: #140
+
+### Entry 32
+
+- Student(s):
+- Artifact: 
+  backend/app/repositories/accounts/session_repository.py (moved),
+  backend/app/services/accounts/account_factory.py (new),
+  backend/app/services/accounts/account_service.py (new),
+  backend/app/services/accounts/auth_service.py (moved),
+  backend/app/services/accounts/password_hashing.py (moved),
+  backend/app/routes/accounts/customer_routes.py (new), 
+  backend/app/routes/accounts/auth_routes.py (moved),
+  backend/app/dependencies/auth.py, 
+  main.py,
+  backend/tests/auth/*, 
+  AGENTS.md,
+  */README.md
+- Label: AI-ASSISTED | AI-REVISED
+- AI tool: Claude (Claude Code)
+- Purpose: I prompted Claude to assist with developing. All pivitol decisions and architecture changes were mine. I used it to help 
+  implement the backend logic for accounts at an accelerated rate. Furthermore, I had Claude handle testing for me. 
+- Influence: Tests, and basic logic imlementation, however refrained from leting Claude dictate architecture, and actually caught some bugs or 'mistakes' 
+  it would try implementing here or there.
+- Validation: Manually ran tests in `uvicorn main:app` and pytest.
+- PR: #156
+
+### Entry 33
+
+- Student(s):
+- Artifact: frontend/src/api/client.ts (new), frontend/src/api/accounts.ts (new),
+  frontend/src/types/account.ts (new), frontend/src/hooks/useCurrentAccount.ts (new),
+  frontend/src/hooks/useMyProfile.ts (new), frontend/src/routes/RequireSignIn.tsx (new),
+  frontend/src/pages/AccountView.tsx (new), frontend/src/pages/ProfileView.tsx (new),
+  frontend/src/App.tsx, frontend/src/layouts/generic_layout/GenericLayout.tsx,
+  frontend/src/api/tests/*, frontend/src/pages/tests/*, frontend/src/routes/tests/*,
+  frontend/src/layouts/generic_layout/tests/*, frontend/src/*/README.md, frontend/src/README.md
+- Label: AI-GENERATED
+- AI tool: Claude (Claude Code)
+- Purpose: Needed to implement the frontend without enough time to fully do it myself. I have personal documentation on refactors, architecture, ruling, and finding's I want to implement as time goes on so I had it go through that for reference.
+- Validation: I tested everything manually and in repo and browser.
+- PR: #158

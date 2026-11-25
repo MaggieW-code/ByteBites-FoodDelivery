@@ -7,8 +7,11 @@ Food Delivery uses a layered architecture:
 - **Frontend:** Presents the application interface and communicates with the API.
 - **Routes:** Define HTTP paths, receive parameters and requests, return responses and
   status codes, and call the appropriate service.
-- **Services:** Contain business rules, validation, calculations, state transitions,
-  and workflow orchestration.
+- **Services:** Contain business rules that need stored data or span entities
+  (uniqueness, ownership, state transitions), calculations, and workflow orchestration.
+- **Models:** Pydantic request, response, and domain models. Rules that need only the value
+  itself (format, length, allowed characters) live here as `Annotated` types, so FastAPI
+  rejects bad input with 422 before a route runs.
 - **Repositories:** Encapsulate storage operations and hide JSON/CSV file handling
   from the rest of the application.
 - **JSON/CSV persistence:** Stores representative application data without requiring
@@ -25,7 +28,13 @@ can change without coupling services to file formats or file operations.
 | Restaurants | `routes/restaurant_routes.py` | `services/restaurant_service.py` | `repositories/restaurant_repository.py` | `data/restaurants.json` |
 | Menus | `routes/menu_routes.py` | `services/menu_service.py` | `repositories/menu_repository.py` | `data/menus.json` |
 | Shopping cart | `routes/cart_routes.py`, `routes/cart_auth.py` | `services/cart_service.py` | `repositories/cart_repository.py` | `data/carts.json` |
-| Auth | `routes/auth_routes.py` (+ `dependencies/auth.py`) | `services/auth_service.py` | `repositories/account_repository.py`, `repositories/session_repository.py` | `data/accounts.json`, `data/sessions.json` |
+| Auth | `routes/accounts/auth_routes.py` (+ `dependencies/auth.py`) | `services/accounts/auth_service.py` | `repositories/accounts/account_repository.py`, `repositories/accounts/session_repository.py` | `data/accounts.json`, `data/sessions.json` |
+| Customer accounts | `routes/accounts/customer_routes.py` (+ `dependencies/auth.py`) | `services/accounts/account_service.py`, `services/accounts/account_factory.py` | `repositories/accounts/account_repository.py` | `data/accounts.json` |
+
+Layers stay the top-level folders. Inside a layer, a feature with several files there gets
+its own subfolder (`models/accounts/`, `repositories/accounts/`, `services/accounts/`,
+`routes/accounts/`); a single file stays at the layer root. Subfolders never change which
+layer may call which.
 
 All backend paths are relative to `backend/app/`. Request and response shapes are
 Pydantic models in `models/`. Services raise domain errors (for example,

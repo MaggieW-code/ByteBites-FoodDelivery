@@ -7,11 +7,12 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from backend.app.config import get_accounts_data_path, get_auth_token_lifetime, get_sessions_data_path
-from backend.app.models.account_model import Role
-from backend.app.models.auth_model import AuthenticatedAccount
-from backend.app.repositories.account_repository import AccountRepository
-from backend.app.repositories.session_repository import SessionRepository
-from backend.app.services.auth_service import (
+from backend.app.models.accounts.account_model import Role
+from backend.app.models.accounts.auth_model import AuthenticatedAccount
+from backend.app.repositories.accounts.account_repository import AccountRepository
+from backend.app.repositories.accounts.session_repository import SessionRepository
+from backend.app.services.accounts.account_service import AccountService
+from backend.app.services.accounts.auth_service import (
     AccountDeactivatedError,
     AuthService,
     InvalidTokenError,
@@ -28,6 +29,10 @@ def get_auth_service() -> AuthService:
         SessionRepository(get_sessions_data_path()),
         token_lifetime=get_auth_token_lifetime(),
     )
+
+
+def get_account_service() -> AccountService:
+    return AccountService(AccountRepository(get_accounts_data_path()), SessionRepository(get_sessions_data_path()))
 
 
 def get_bearer_token(

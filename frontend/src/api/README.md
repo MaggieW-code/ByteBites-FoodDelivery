@@ -10,6 +10,8 @@ pages and components call a typed function instead of `fetch`.
 | File | Functions → endpoint | Used by |
 |---|---|---|
 | `restaurants.ts` | `fetchRestaurants(cuisine?)` → `GET /restaurants`, `fetchRestaurantById` → `GET /restaurants/{id}`, `createRestaurant` → `POST /restaurants`, `updateRestaurant` → `PATCH /restaurants/{id}` | `DiscoverView`, `RestaurantDetailsView`, `CreateRestaurantForm`, `UpdateRestaurantForm` |
+| `client.ts` | `API_BASE_URL` (env `API_BASE_URL`, default `http://127.0.0.1:8000`); the saved token (`getAccessToken`, `saveAccessToken`, `clearAccessToken`, in `localStorage`); `request<T>()` (JSON, `response.ok` check, throws `ApiError`; with `isAuthenticated: true` it sends the token, and a 401 clears it and fires `SESSION_EXPIRED_EVENT`); `ApiError` (`status`, `detail`, `fieldErrors` for 422) | `accounts.ts`, `useCurrentAccount`, `GenericLayout` |
+| `accounts.ts` | `registerCustomer` → `POST /customers`, `signIn` → `POST /auth/sign-in` (saves the token), `getCurrentAccount` → `GET /auth/me`, `signOut` → `POST /auth/sign-out` (always forgets the token), `getMyProfile` / `updateMyProfile` → `GET` / `PATCH /customers/me`, `addMyAddress` / `updateMyAddress` / `removeMyAddress` → `/customers/me/addresses`, `deactivateMyAccount` → `POST /customers/me/deactivate` (then forgets the token) | `AccountView`, `ProfileView`, `useCurrentAccount`, `useMyProfile`, `GenericLayout` |
 | `menus.ts` | `fetchMenu(restaurantId, signal?)` → `GET /restaurants/{id}/menu` | `RestaurantMenuView` |
 
 ## How it connects
@@ -26,7 +28,8 @@ pages and components call a typed function instead of `fetch`.
   `response.ok`, and returns a typed promise.
 - Read functions accept an optional `AbortSignal` so a page can cancel stale requests.
 - Not yet true:
-  - The base URL is hardcoded in each file (F15).
+  - `restaurants.ts` and `menus.ts` still hardcode the base URL and handle errors their own way; new
+    files use `client.ts`, and the old ones move to it in a follow-up (F15, F30).
   - Request types live here instead of `types/` (F16).
   - Errors are handled three different ways, user-facing text is written here, and
     `createRestaurant` / `updateRestaurant` show the backend's raw response body to the

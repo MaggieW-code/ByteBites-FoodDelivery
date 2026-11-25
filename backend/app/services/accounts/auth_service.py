@@ -3,23 +3,11 @@ import secrets
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from functools import cache
-from uuid import uuid4
 
-from pydantic import TypeAdapter
-
-from backend.app.models.account_model import (
-    Account,
-    AccountCreationRequest,
-    Role,
-    StoredAccount,
-)
-from backend.app.models.auth_model import AuthenticatedAccount, Session, SignInRequest, TokenResponse
-from backend.app.repositories.account_repository import AccountRepository
-from backend.app.repositories.session_repository import SessionRepository
-from backend.app.services.password_hashing import hash_password, verify_password
-
-account_adapter = TypeAdapter(Account)
-stored_account_adapter = TypeAdapter(StoredAccount)
+from backend.app.models.accounts.auth_model import AuthenticatedAccount, Session, SignInRequest, TokenResponse
+from backend.app.repositories.accounts.account_repository import AccountRepository
+from backend.app.repositories.accounts.session_repository import SessionRepository
+from backend.app.services.accounts.password_hashing import hash_password, verify_password
 
 
 class AuthError(Exception):
@@ -39,14 +27,6 @@ class InvalidTokenError(AuthError):
 
 
 class SessionExpiredError(AuthError):
-    pass
-
-
-class EmailAlreadyRegisteredError(AuthError):
-    pass
-
-
-class AccountNotFoundError(AuthError):
     pass
 
 
@@ -118,45 +98,3 @@ class AuthService:
 
     def sign_out(self, token: str) -> None:
         self.session_repository.delete_by_token_hash(hash_token(token))
-
-    def register_account(self, request: AccountCreationRequest, role: Role = "customer") -> Account:
-        if self.account_repository.get_by_email(request.email) is not None:
-            raise EmailAlreadyRegisteredError(f"Email already registered: {request.email}")
-
-        stored = stored_account_adapter.validate_python(
-            dict(
-                id=self.new_account_id(),
-                full_name=request.full_name,
-                email=request.email,
-                phone=request.phone,
-                is_active=True,
-                role=role,
-                password_hash=hash_password(request.password.get_secret_value()),
-            )
-        )
-        self.account_repository.add(stored)
-        return to_public(stored)
-
-    def get_account(self, account_id: str) -> Account:
-        return to_public(self.get_stored_account(account_id))
-
-    def deactivate_account(self, account_id: str) -> Account:
-        stored = self.get_stored_account(account_id).model_copy(update={"is_active": False})
-        self.account_repository.update(stored)
-        return to_public(stored)
-
-    def get_stored_account(self, account_id: str) -> StoredAccount:
-        account = self.account_repository.get_by_id(account_id)
-        if account is None:
-            raise AccountNotFoundError(f"Account '{account_id}' not found")
-        return account
-
-    def new_account_id(self) -> str:
-        account_id = uuid4().hex[:8]
-        while self.account_repository.get_by_id(account_id) is not None:
-            account_id = uuid4().hex[:8]
-        return account_id
-
-
-def to_public(stored: StoredAccount) -> Account:
-    return account_adapter.validate_python(stored.model_dump())
