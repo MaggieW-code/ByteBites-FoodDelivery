@@ -27,7 +27,9 @@ can change without coupling services to file formats or file operations.
 |---|---|---|---|---|
 | Restaurants | `routes/restaurant_routes.py` | `services/restaurant_service.py` | `repositories/restaurant_repository.py` | `data/restaurants.json` |
 | Menus | `routes/menu_routes.py` | `services/menu_service.py` | `repositories/menu_repository.py` | `data/menus.json` |
-| Shopping cart | `routes/cart_routes.py`, `routes/cart_auth.py` | `services/cart_service.py` | `repositories/cart_repository.py` | `data/carts.json` |
+| Shopping cart | `routes/cart_routes.py`, `routes/cart_auth.py` (+ `dependencies/commerce.py`) | `services/cart_service.py` | `repositories/cart_repository.py` | `data/carts.json` |
+| Checkout | `routes/checkout_routes.py` (+ `dependencies/commerce.py`, `routes/auth_dependencies.py`) | `services/checkout_service.py` (uses `CartService`, `MenuService`) | `repositories/order_repository.py` | `data/orders.json` |
+| Orders | `routes/order_routes.py` (+ `dependencies/orders.py`, `routes/auth_dependencies.py`) | `services/order_service.py` | `repositories/order_repository.py` | `data/orders.json` |
 | Auth | `routes/accounts/auth_routes.py` (+ `dependencies/auth.py`) | `services/accounts/auth_service.py` | `repositories/accounts/account_repository.py`, `repositories/accounts/session_repository.py` | `data/accounts.json`, `data/sessions.json` |
 | Customer accounts | `routes/accounts/customer_routes.py` (+ `dependencies/auth.py`) | `services/accounts/account_service.py`, `services/accounts/account_factory.py` | `repositories/accounts/account_repository.py` | `data/accounts.json` |
 
