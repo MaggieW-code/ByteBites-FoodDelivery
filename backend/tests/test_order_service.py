@@ -16,9 +16,7 @@ def test_get_owned_order():
     order = make_order()
     repository.get_by_id.return_value = order
 
-    assert OrderService(repository).get_order(
-        order.order_id, requester_id=order.customer_id
-    ) == order
+    assert OrderService(repository).get_order(order.order_id, requester_id=order.customer_id) == order
     repository.get_by_id.assert_called_once_with(order.order_id)
 
 
@@ -36,9 +34,7 @@ def test_history_queries_only_the_requested_owner():
     order = make_order()
     repository.get_by_customer_id.return_value = [order]
 
-    assert OrderService(repository).get_customer_orders(
-        order.customer_id, requester_id=order.customer_id
-    ) == [order]
+    assert OrderService(repository).get_customer_orders(order.customer_id, requester_id=order.customer_id) == [order]
     repository.get_by_customer_id.assert_called_once_with(order.customer_id)
 
 

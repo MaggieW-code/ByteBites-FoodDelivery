@@ -20,9 +20,7 @@ class OrderService:
             raise OrderNotFoundError
         return order
 
-    def get_customer_orders(
-        self, customer_id: str, *, requester_id: str
-    ) -> list[Order]:
+    def get_customer_orders(self, customer_id: str, *, requester_id: str) -> list[Order]:
         if customer_id != requester_id:
             raise OrderAccessDeniedError
         return self.repository.get_by_customer_id(customer_id)
