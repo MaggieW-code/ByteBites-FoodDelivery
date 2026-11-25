@@ -94,9 +94,7 @@ def add_item(
     description="Set the quantity of an item already in the active cart.",
     responses={404: {"description": "Item not found in the cart or menu"}},
 )
-def update_item(
-    item_id: ItemId, data: UpdateCartItemRequest, customer_id: CustomerId, service: Service
-) -> CartResponse:
+def update_item(item_id: ItemId, data: UpdateCartItemRequest, customer_id: CustomerId, service: Service) -> CartResponse:
     return service.update_item_quantity(customer_id, item_id, data.quantity)
 
 

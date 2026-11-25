@@ -35,16 +35,11 @@ class Order(BaseModel):
 
     status: Literal["created"] = "created"
 
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @model_validator(mode="after")
     def validate_total(self):
-        expected = sum(
-            (item.line_total for item in self.items),
-            Decimal("0")
-        )
+        expected = sum((item.line_total for item in self.items), Decimal("0"))
 
         if self.total != expected:
             raise ValueError("Incorrect order total")

@@ -1,4 +1,3 @@
-
 import json
 import os
 import tempfile
@@ -33,21 +32,15 @@ class OrderRepository:
         except FileNotFoundError:
             return []
         except (json.JSONDecodeError, UnicodeDecodeError) as error:
-            raise OrderDataMalformedError(
-                "Order storage contains malformed JSON"
-            ) from error
+            raise OrderDataMalformedError("Order storage contains malformed JSON") from error
 
         if not isinstance(data, list):
-            raise OrderDataError(
-                "Order storage must contain a list"
-            )
+            raise OrderDataError("Order storage must contain a list")
 
         try:
             return [Order.model_validate(record) for record in data]
         except ValidationError as error:
-            raise OrderDataError(
-                "Order storage contains an invalid order"
-            ) from error
+            raise OrderDataError("Order storage contains an invalid order") from error
 
     def get_by_id(self, order_id: str) -> Order | None:
         for order in self.get_all():
@@ -57,11 +50,7 @@ class OrderRepository:
         return None
 
     def get_by_customer_id(self, customer_id: str) -> list[Order]:
-        return [
-            order
-            for order in self.get_all()
-            if order.customer_id == customer_id
-        ]
+        return [order for order in self.get_all() if order.customer_id == customer_id]
 
     def save(self, order: Order) -> Order:
         record = order.model_dump(mode="json")
@@ -76,9 +65,7 @@ class OrderRepository:
         with FileLock(path.with_name(path.name + ".lock"), timeout=10):
             orders = self.get_all()
             if any(existing.order_id == snapshot.order_id for existing in orders):
-                raise DuplicateOrderError(
-                    f"Order '{snapshot.order_id}' already exists"
-                )
+                raise DuplicateOrderError(f"Order '{snapshot.order_id}' already exists")
             serialized = [existing.model_dump(mode="json") for existing in orders]
             serialized.append(snapshot.model_dump(mode="json"))
             self._write(path, serialized)

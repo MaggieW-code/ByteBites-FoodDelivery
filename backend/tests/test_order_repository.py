@@ -1,4 +1,3 @@
-
 import json
 from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
@@ -149,9 +148,7 @@ def test_new_order_preserves_existing_orders(tmp_path):
     assert repo.get_all() == [first, second]
 
 
-def test_failed_write_preserves_existing_orders(
-    tmp_path, monkeypatch
-):
+def test_failed_write_preserves_existing_orders(tmp_path, monkeypatch):
     import backend.app.repositories.order_repository as module
 
     path = tmp_path / "orders.json"

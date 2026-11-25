@@ -24,6 +24,9 @@ The following features are implemented, with pytest coverage:
 - **Restaurant management:** create and update restaurants.
 - **Menu browsing:** view a restaurant's menu.
 - **Menu management:** add and update menu items.
+- **Customer accounts:** register, sign in and out, profile, delivery addresses, deactivate.
+- **Shopping cart:** one active cart per customer, from one restaurant at a time.
+- **Checkout and orders:** check out the cart into a saved order, then view your orders.
 
 The React frontend includes a landing page, a restaurant discovery list,
 restaurant details and menu views, and forms for creating and updating
@@ -227,6 +230,34 @@ unavailable items, inactive restaurants, or restaurant mismatches on add,
 `422` for invalid inputs, and `500` for storage failures. See `/docs` for the
 endpoint schemas and responses.
 
+### Checkout
+
+Send the same `Authorization: Bearer <access_token>` header as for the cart.
+
+| Method and path | Behavior |
+|---|---|
+| `POST /checkout` | Body `{"cart_id": "<id from GET /cart>"}`. Returns `201` with the new order. |
+
+Checkout prices every item from the **current** menu (exact decimals), saves the
+order with each item's purchase-time name, price and quantity, and only then
+closes the cart, so a failed save never loses the cart. Retrying the same
+checkout returns the same order instead of creating a second one.
+
+Returns `401` without a valid token, `403` for a non-customer or deactivated
+account, `404` if the cart isn't the customer's, `409` for an empty or changed
+cart, an inactive restaurant, or an unavailable item, and `422` for an invalid
+body.
+
+### Orders
+
+| Method and path | Behavior |
+|---|---|
+| `GET /orders/{order_id}` | One order placed by the signed-in customer. `404` if it isn't theirs. |
+| `GET /customers/{customer_id}/orders` | The signed-in customer's orders (`[]` if none). `403` for another customer's ID. |
+
+Both need a customer token (`401` without one). Orders keep the prices from the
+time of purchase, even if the menu changes later.
+
 ## Run tests
 
 From the repository root, with the virtual environment activated:
@@ -243,8 +274,9 @@ modify application data.
 Restaurant data is stored as JSON at `backend/app/data/restaurants.json` by default.
 Menus and their items are stored in `backend/app/data/menus.json`.
 
-You can change this by setting the `RESTAURANT_TRIAL_PATH` environment variable
-to a different file path. This is useful for testing, since tests can point
+You can change these by setting environment variables to other file paths:
+`RESTAURANT_TRIAL_PATH`, `MENUS_PATH`, `ACCOUNTS_PATH`, `SESSIONS_PATH`,
+`CARTS_PATH` and `ORDERS_PATH`. This is useful for testing, since tests can point
 to their own temporary data file instead of using the real one.
 
 ## Team development workflow
