@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, Path as PathParameter
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException
+from fastapi import Path as PathParameter
 
 from backend.app.menu_dependencies import menu_service
-from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
-from backend.app.models.menu_model import Menu
-from backend.app.models.update_menu_item_model import UpdateMenuItem
+from backend.app.models.menu_model import CreateMenuItem, Menu, MenuItem, MenuItemId, UpdateMenuItem
+from backend.app.models.restaurant_model import RestaurantId
 from backend.app.services.menu_service import (
     MenuItemNotFoundError,
     MenuRestaurantNotFoundError,
@@ -11,16 +13,23 @@ from backend.app.services.menu_service import (
 
 router = APIRouter()
 
+# Use Annotated[...] so the ID rule from the model is applied to the path.
+# (Writing `restaurant_id: RestaurantId = PathParameter(...)` would silently drop the rule.)
+RestaurantIdPath = Annotated[RestaurantId, PathParameter(description="Restaurant ID, for example rest_001")]
+MenuItemIdPath = Annotated[MenuItemId, PathParameter(description="Menu item ID, for example item_001")]
+
 
 @router.get(
     "/restaurants/{restaurant_id}/menu",
     response_model=Menu,
-    description="Retrieve a restaurant's persisted menu and items. Existing restaurants without items return an empty menu. Prices are decimal strings in the menu currency.",
+    description=(
+        "Retrieve a restaurant's persisted menu and items. Existing restaurants without items "
+        "return an empty menu. Prices are decimal strings in the menu currency."
+    ),
     responses={404: {"description": "Restaurant not found"}},
 )
 def restaurant_menu(
-    restaurant_id: str = PathParameter(..., min_length=8, max_length=8,
-                                       description="Restaurant ID, for example rest_001"),
+    restaurant_id: RestaurantIdPath,
 ) -> Menu:
     try:
         return menu_service.get_menu(restaurant_id)
@@ -28,13 +37,28 @@ def restaurant_menu(
         raise HTTPException(status_code=404, detail=str(error)) from error
 
 
-@router.post("/restaurants/{restaurant_id}/menu", response_model=MenuItem, status_code=201)
-def add_menu(restaurant_id: str, data: CreateMenuItem) -> MenuItem:
-    return menu_service.add_menu(restaurant_id, data)
+@router.post(
+    "/restaurants/{restaurant_id}/menu",
+    response_model=MenuItem,
+    status_code=201,
+    responses={404: {"description": "Restaurant not found"}},
+)
+def add_menu(
+    data: CreateMenuItem,
+    restaurant_id: RestaurantIdPath,
+) -> MenuItem:
+    try:
+        return menu_service.add_menu(restaurant_id, data)
+    except MenuRestaurantNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
 
 
 @router.patch("/restaurants/{restaurant_id}/menu/{menu_item_id}", response_model=MenuItem)
-def update_menu(restaurant_id: str, menu_item_id: str, data: UpdateMenuItem) -> MenuItem:
+def update_menu(
+    restaurant_id: RestaurantIdPath,
+    menu_item_id: MenuItemIdPath,
+    data: UpdateMenuItem,
+) -> MenuItem:
     try:
         return menu_service.update_menu(restaurant_id, menu_item_id, data)
     except MenuItemNotFoundError:

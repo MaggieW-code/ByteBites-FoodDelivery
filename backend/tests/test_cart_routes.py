@@ -1,16 +1,17 @@
 import json
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app.models.authenticated_account_model import AuthenticatedAccount
+from backend.app.dependencies.auth import get_auth_service
 from backend.app.repositories.cart_repository import CartRepository
 from backend.app.repositories.menu_repository import MenuRepository
 from backend.app.repositories.restaurant_repository import RestaurantRepository
-from backend.app.routes.cart_auth import get_authenticated_account
 from backend.app.routes.cart_routes import get_cart_service
 from backend.app.services.cart_service import CartService, CartValidationError
 from backend.app.services.menu_service import MenuService
+from backend.app.services.password_hashing import hash_password
 from main import app
 
 
@@ -49,10 +50,47 @@ def cart_api(tmp_path, monkeypatch):
         yield client, repository
 
 
+CART_TEST_PASSWORD = "Cart-test-password"
+
+
+@pytest.fixture(scope="session")
+def cart_password_hash():
+    return hash_password(CART_TEST_PASSWORD)
+
+
 @pytest.fixture
-def authenticated_api(cart_api, monkeypatch):
-    account = AuthenticatedAccount(id="alice", role="customer", is_active=True)
-    monkeypatch.setitem(app.dependency_overrides, get_authenticated_account, lambda: account)
+def cart_accounts(tmp_path, monkeypatch, cart_password_hash):
+    accounts_path = tmp_path / "cart-accounts.json"
+    accounts_path.write_text(json.dumps([
+        {
+            "id": account_id,
+            "full_name": name,
+            "email": email,
+            "phone": "250-555-0100",
+            "role": role,
+            "is_active": True,
+            "password_hash": cart_password_hash,
+        }
+        for account_id, name, email, role in [
+            ("cust_001", "Alice Customer", "alice@example.com", "customer"),
+            ("cust_002", "Bob Customer", "bob@example.com", "customer"),
+            ("admn_001", "Admin User", "admin@example.com", "admin"),
+        ]
+    ]), encoding="utf-8")
+    monkeypatch.setenv("ACCOUNTS_PATH", str(accounts_path))
+    monkeypatch.setenv("SESSIONS_PATH", str(tmp_path / "cart-sessions.json"))
+
+
+def bearer_headers(client, email):
+    response = client.post("/auth/sign-in", json={"email": email, "password": CART_TEST_PASSWORD})
+    assert response.status_code == 200
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+@pytest.fixture
+def authenticated_api(cart_api, cart_accounts):
+    client, _ = cart_api
+    client.headers.update(bearer_headers(client, "alice@example.com"))
     return cart_api
 
 
@@ -63,7 +101,7 @@ def test_cart_lifecycle_and_response_schema(authenticated_api):
     empty_cart = response.json()
     assert empty_cart == {
         "id": empty_cart["id"],
-        "customer_id": "alice",
+        "customer_id": "cust_001",
         "restaurant_id": None,
         "items": [],
         "status": "active",
@@ -119,68 +157,69 @@ def test_cart_routes_require_authenticated_customer(cart_api, method, url, body)
     assert repository.get_all() == []
 
 
-def test_get_cart_is_scoped_to_authenticated_customer(cart_api, monkeypatch):
-    client, _ = cart_api
-    customer = "alice"
-    monkeypatch.setitem(
-        app.dependency_overrides,
-        get_authenticated_account,
-        lambda: AuthenticatedAccount(id=customer, role="customer", is_active=True),
-    )
-    alice_cart = client.post(
+def test_get_cart_is_scoped_to_authenticated_customer(authenticated_api):
+    client, _ = authenticated_api
+    response = client.post(
         "/cart/items?restaurant_id=rest_001", json={"menu_item_id": "item_001", "quantity": 1}
-    ).json()
-
-    customer = "bob"
-    response = client.get("/cart", params={"customer_id": "alice"}, headers={"X-Customer-ID": "alice"})
+    )
     assert response.status_code == 200
-    assert response.json()["customer_id"] == "bob"
+    alice_cart = response.json()
+
+    bob_headers = bearer_headers(client, "bob@example.com")
+    response = client.get(
+        "/cart", params={"customer_id": "cust_001"}, headers={**bob_headers, "X-Customer-ID": "cust_001"}
+    )
+    assert response.status_code == 200
+    assert response.json()["customer_id"] == "cust_002"
     assert response.json()["id"] != alice_cart["id"]
     assert response.json()["items"] == []
-    assert client.delete("/cart/items/item_001").status_code == 404
+    assert client.delete("/cart/items/item_001", headers=bob_headers).status_code == 404
 
     response = client.post(
         "/cart/items",
-        params={"restaurant_id": "rest_001", "customer_id": "alice"},
-        json={"menu_item_id": "item_001", "quantity": 5, "customer_id": "alice"},
+        params={"restaurant_id": "rest_001", "customer_id": "cust_001"},
+        json={"menu_item_id": "item_001", "quantity": 5, "customer_id": "cust_001"},
+        headers=bob_headers,
     )
     assert response.status_code == 200
-    assert response.json()["customer_id"] == "bob"
-
-    customer = "alice"
+    assert response.json()["customer_id"] == "cust_002"
     assert client.get("/cart").json() == alice_cart
 
 
-@pytest.mark.parametrize(
-    ("account", "expected_status"),
-    [
-        (AuthenticatedAccount(id="alice", role="customer", is_active=True), 200),
-        (AuthenticatedAccount(id="alice", role="customer", is_active=False), 403),
-        (AuthenticatedAccount(id="alice", role="admin", is_active=True), 403),
-    ],
-)
-def test_cart_authorizes_account_from_trusted_request_state(cart_api, account, expected_status):
-    _, repository = cart_api
-
-    async def with_authenticated_account(scope, receive, send):
-        if scope["type"] == "http":
-            scope.setdefault("state", {})["authenticated_account"] = account
-        await app(scope, receive, send)
-
-    with TestClient(with_authenticated_account) as client:
-        response = client.post("/cart")
-
-    assert response.status_code == expected_status
-    if expected_status == 200:
-        assert response.json()["customer_id"] == account.id
-    else:
-        assert repository.get_all() == []
+def test_non_customer_cannot_open_cart(cart_api, cart_accounts):
+    client, repository = cart_api
+    response = client.post("/cart", headers=bearer_headers(client, "admin@example.com"))
+    assert response.status_code == 403
+    assert repository.get_all() == []
 
 
-def test_unverified_bearer_credential_cannot_open_cart(cart_api):
+def test_deactivated_customer_cannot_open_cart(authenticated_api):
+    client, repository = authenticated_api
+    get_auth_service().deactivate_account("cust_001")
+    assert client.post("/cart").status_code == 403
+    assert repository.get_all() == []
+
+
+def test_expired_bearer_credential_cannot_open_cart(cart_api, cart_accounts, monkeypatch):
+    client, repository = cart_api
+    auth_service = get_auth_service()
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    monkeypatch.setattr(auth_service, "clock", lambda: now)
+    monkeypatch.setitem(app.dependency_overrides, get_auth_service, lambda: auth_service)
+    headers = bearer_headers(client, "alice@example.com")
+
+    now += auth_service.token_lifetime
+    response = client.get("/cart", headers=headers)
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert repository.get_all() == []
+
+
+def test_unverified_bearer_credential_cannot_open_cart(cart_api, cart_accounts):
     client, repository = cart_api
     response = client.get("/cart", headers={"Authorization": "Bearer unverified"})
     assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
     assert repository.get_all() == []
 
 
@@ -279,6 +318,8 @@ def test_frontend_can_preflight_cart_delete(cart_api):
     response = client.options("/cart", headers={
         "Origin": "http://localhost:1234",
         "Access-Control-Request-Method": "DELETE",
+        "Access-Control-Request-Headers": "Authorization",
     })
     assert response.status_code == 200
     assert "DELETE" in response.headers["Access-Control-Allow-Methods"]
+    assert "Authorization" in response.headers["Access-Control-Allow-Headers"]

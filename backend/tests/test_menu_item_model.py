@@ -1,7 +1,9 @@
+from decimal import Decimal
+
 from pydantic import ValidationError
 from pytest import raises
 
-from backend.app.models.menu_item_model import CreateMenuItem, MenuItem
+from backend.app.models.menu_model import CreateMenuItem, MenuItem
 
 
 def test_create_menu_item_model_successful() -> None:
@@ -14,7 +16,7 @@ def test_create_menu_item_model_successful() -> None:
 
     assert item.name == "Pho"
     assert item.category == "Noodles"
-    assert item.price == 14.99
+    assert item.price == Decimal("14.99")
     assert item.is_available is True
 
 def test_menu_item_model_successful() -> None:
@@ -31,7 +33,7 @@ def test_menu_item_model_successful() -> None:
     assert item.restaurant_id == "rest_001"
     assert item.name == "Pho"
     assert item.category == "Noodles"
-    assert item.price == 14.99
+    assert item.price == Decimal("14.99")
     assert item.is_available is True
 
 def test_menu_item_model_missing_id() -> None:
@@ -99,16 +101,17 @@ def test_menu_item_model_empty_category() -> None:
             is_available=True,
         )
 
-def test_menu_item_model_zero_price() -> None:
-    with raises(ValidationError):
-        MenuItem(
-            id="menu_001",
-            restaurant_id="rest_001",
-            name="Pho",
-            category="Noodles",
-            price=0,
-            is_available=True,
-        )
+def test_menu_item_model_zero_price_is_free_item() -> None:
+    item = MenuItem(
+        id="menu_001",
+        restaurant_id="rest_001",
+        name="Free sample",
+        category="Samples",
+        price=0,
+        is_available=True,
+    )
+
+    assert item.price == Decimal("0")
 
 def test_menu_item_model_negative_price() -> None:
     with raises(ValidationError):
@@ -121,14 +124,37 @@ def test_menu_item_model_negative_price() -> None:
             is_available=True,
         )
 
-def test_menu_item_model_price_as_string() -> None:
+def test_menu_item_model_price_as_decimal_string() -> None:
+    item = MenuItem(
+        id="menu_001",
+        restaurant_id="rest_001",
+        name="Pho",
+        category="Noodles",
+        price="14.99",
+        is_available=True,
+    )
+
+    assert item.price == Decimal("14.99")
+
+def test_menu_item_model_price_as_non_number_string() -> None:
     with raises(ValidationError):
         MenuItem(
             id="menu_001",
             restaurant_id="rest_001",
             name="Pho",
             category="Noodles",
-            price="14.99",
+            price="cheap",
+            is_available=True,
+        )
+
+def test_menu_item_model_price_too_many_decimals() -> None:
+    with raises(ValidationError):
+        MenuItem(
+            id="menu_001",
+            restaurant_id="rest_001",
+            name="Pho",
+            category="Noodles",
+            price="14.999",
             is_available=True,
         )
 

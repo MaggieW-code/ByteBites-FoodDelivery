@@ -1,7 +1,9 @@
+from decimal import Decimal
+
 from pydantic import ValidationError
 from pytest import raises
 
-from backend.app.models.update_menu_item_model import UpdateMenuItem
+from backend.app.models.menu_model import UpdateMenuItem
 
 
 def test_update_menu_item_model_all_fields() -> None:
@@ -14,13 +16,13 @@ def test_update_menu_item_model_all_fields() -> None:
 
     assert item.name == "Pho"
     assert item.category == "Noodles"
-    assert item.price == 14.99
+    assert item.price == Decimal("14.99")
     assert item.is_available is False
 
 def test_update_menu_item_model_only_price() -> None:
     item = UpdateMenuItem(price=3.99)
 
-    assert item.price == 3.99
+    assert item.price == Decimal("3.99")
     assert item.name is None
     assert item.category is None
     assert item.is_available is None
@@ -38,17 +40,23 @@ def test_update_menu_item_model_empty_category() -> None:
     with raises(ValidationError):
         UpdateMenuItem(category="")
 
-def test_update_menu_item_model_zero_price() -> None:
-    with raises(ValidationError):
-        UpdateMenuItem(price=0)
+def test_update_menu_item_model_zero_price_is_free_item() -> None:
+    assert UpdateMenuItem(price=0).price == Decimal("0")
 
 def test_update_menu_item_model_negative_price() -> None:
     with raises(ValidationError):
         UpdateMenuItem(price=-5.0)
 
-def test_update_menu_item_model_price_as_string() -> None:
+def test_update_menu_item_model_price_as_decimal_string() -> None:
+    assert UpdateMenuItem(price="3.99").price == Decimal("3.99")
+
+def test_update_menu_item_model_price_as_non_number_string() -> None:
     with raises(ValidationError):
-        UpdateMenuItem(price="3.99")
+        UpdateMenuItem(price="cheap")
+
+def test_update_menu_item_model_price_too_many_decimals() -> None:
+    with raises(ValidationError):
+        UpdateMenuItem(price=3.999)
 
 def test_update_menu_item_model_is_available_as_string() -> None:
     with raises(ValidationError):

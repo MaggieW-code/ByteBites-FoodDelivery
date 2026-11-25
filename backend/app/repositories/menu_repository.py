@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from backend.app.models.menu_item_model import MenuItem
+from backend.app.models.menu_model import MenuItem
 
 
 # if the menu data is not exist
@@ -14,6 +14,10 @@ class MenuDataMalformedError(Exception):
 
 # if the file is not a list
 class MenuDataError(Exception):
+    pass
+
+# if the same item ID is in more than one place, so we can't tell which item is meant
+class DuplicateMenuItemIdError(Exception):
     pass
 
 
@@ -60,9 +64,31 @@ class MenuRepository:
                 return item
         return None
 
+    def find_item_by_id(self, item_id: str) -> dict | None:
+        menus = self.get_all()
+        matches = []
+        for menu in menus:
+            for item in menu["items"]:
+                if item["id"] == item_id:
+                    matches.append({**item, "restaurant_id": menu["restaurant_id"]})
+        if len(matches) > 1:
+            raise DuplicateMenuItemIdError(
+                f"Menu item ID '{item_id}' is used by more than one item"
+            )
+        if not matches:
+            return None
+        return matches[0]
+
+    def item_id_exists(self, item_id: str) -> bool:
+        for menu in self.get_all():
+            for item in menu["items"]:
+                if item["id"] == item_id:
+                    return True
+        return False
+
     def add(self, item: MenuItem) -> None:
         menus = self.get_all()
-        entry = item.model_dump(exclude={"restaurant_id"})
+        entry = item.model_dump(mode="json",exclude={"restaurant_id"})
 
         for menu in menus:
             if menu["restaurant_id"] == item.restaurant_id:
@@ -77,7 +103,7 @@ class MenuRepository:
 
     def update(self, item: MenuItem) -> None:
         menus = self.get_all()
-        entry = item.model_dump(exclude={"restaurant_id"})
+        entry = item.model_dump(mode="json",exclude={"restaurant_id"})
 
         for menu in menus:
             if menu["restaurant_id"] == item.restaurant_id:
