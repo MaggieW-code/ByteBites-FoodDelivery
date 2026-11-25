@@ -159,7 +159,7 @@ def test_retries_reuse_order_after_cart_close_failure_or_success(checkout):
     with pytest.raises(OSError, match="cart unavailable"):
         place_order(service)
 
-    saved, = service.orders.get_all()
+    (saved,) = service.orders.get_all()
     service.menus.get_menu.return_value.items[0].price = Decimal("20.00")
     assert place_order(service) == saved
     session.cart = None
@@ -173,7 +173,7 @@ def test_retry_does_not_close_a_cart_changed_since_persistence(checkout):
     session.close_cart.side_effect = OSError("cart unavailable")
     with pytest.raises(OSError):
         place_order(service)
-    saved, = service.orders.get_all()
+    (saved,) = service.orders.get_all()
     session.close_cart.reset_mock()
     session.cart = replace(session.cart, items=(("item_001", 3),))
 
