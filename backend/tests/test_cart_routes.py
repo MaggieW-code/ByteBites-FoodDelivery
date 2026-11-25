@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import pytest
 from fastapi.testclient import TestClient
@@ -203,7 +203,7 @@ def test_deactivated_customer_cannot_open_cart(authenticated_api):
 def test_expired_bearer_credential_cannot_open_cart(cart_api, cart_accounts, monkeypatch):
     client, repository = cart_api
     auth_service = get_auth_service()
-    now = datetime(2026, 1, 1, tzinfo=UTC)
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
     monkeypatch.setattr(auth_service, "clock", lambda: now)
     monkeypatch.setitem(app.dependency_overrides, get_auth_service, lambda: auth_service)
     headers = bearer_headers(client, "alice@example.com")
