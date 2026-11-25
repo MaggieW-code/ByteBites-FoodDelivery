@@ -1,9 +1,9 @@
+from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 from typing import Annotated
 
 from pydantic import BaseModel, Field
-
 
 Identifier = Annotated[str, Field(strict=True, min_length=1)]
 EightCharID = Annotated[str, Field(strict=True, min_length=8, max_length=8)]
@@ -40,3 +40,10 @@ class UpdateCartItemRequest(BaseModel):
 class CartResponse(Cart):
     subtotal: Money
     total: Money
+
+
+@dataclass(frozen=True)
+class CheckoutCart:
+    customer_id: str
+    restaurant_id: str | None
+    items: tuple[tuple[str, int], ...]
