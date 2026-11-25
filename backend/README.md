@@ -45,7 +45,7 @@ Prices (POST and PATCH) may be a number or a decimal string, must be 0 or more
 New item IDs are unique across all menus.
 
 `MenuService.get_menu_item(menu_item_id)` looks up a single item by ID across
-all menus for Cart and Checkout. It returns a `MenuItem` (price as `Decimal`,
+all menus for callers that need a lookup by item ID. It returns a `MenuItem` (price as `Decimal`,
 availability, restaurant ID) and raises `MenuItemNotFoundError`,
 `MenuRestaurantNotFoundError`, or `MenuRestaurantInactiveError`. If
 `menus.json` has the same item ID more than once, it raises
@@ -53,3 +53,14 @@ availability, restaurant ID) and raises `MenuItemNotFoundError`,
 `DuplicateMenuItemIdError` never leaves the service).
 
 Run isolated menu tests with `python3 -m pytest backend/tests/test_menu.py -v`.
+
+## Shopping cart
+
+The cart uses bearer authentication to identify the customer. Each customer
+can have one active cart, and all items must come from the same restaurant.
+Adding an item requires an active restaurant and an available menu item.
+
+`CartService` calculates totals using current menu prices. Customers can
+still view their cart after the restaurant is deactivated. Removing the last
+item or clearing the cart resets its restaurant association. `CartRepository`
+stores carts in `backend/app/data/carts.json`, which it creates on the first write.

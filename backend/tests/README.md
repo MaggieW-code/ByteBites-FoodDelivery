@@ -16,6 +16,7 @@ in one file.
 | Repositories | `test_restaurant_repository.py`, `test_menu_repository.py`, `test_json_list_store.py` |
 | Services | `test_restaurant_service.py`, `test_menu_service.py` |
 | Routes (HTTP) | `test_restaurant_routes.py`, `test_restaurant_management.py`, `test_menu_routes.py`, `test_health_routes.py` |
+| Shopping cart | `test_cart_model.py`, `test_cart_repository.py`, `test_cart_service.py`, `test_cart_routes.py`. Covers isolated persistence, business rules, and HTTP ownership checks with bearer tokens issued through sign-in. |
 | One user story across layers | `test_restaurant_details.py`, `test_restaurant_cuisine_filter.py`, `test_menu.py` |
 | Config | `test_config.py` |
 | Shared fixtures | `conftest.py` |

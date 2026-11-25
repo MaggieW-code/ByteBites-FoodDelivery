@@ -19,7 +19,18 @@ from backend.app.services.cart_service import (
     CartValidationError,
 )
 
-router = APIRouter(prefix="/cart", tags=["cart"])
+router = APIRouter(
+    prefix="/cart",
+    tags=["cart"],
+    responses={
+        401: {
+            "description": "Missing, invalid, or expired bearer token",
+            "headers": {"WWW-Authenticate": {"schema": {"type": "string", "example": "Bearer"}}},
+        },
+        403: {"description": "An active customer account is required"},
+        500: {"description": "Unable to access cart data"},
+    },
+)
 data_directory = Path(__file__).resolve().parents[1] / "data"
 cart_service = CartService(
     CartRepository(data_directory / "carts.json"),
@@ -50,17 +61,35 @@ Service = Annotated[CartService, Depends(get_cart_service)]
 ItemId = Annotated[str, PathParameter(min_length=8, max_length=8)]
 
 
-@router.post("", response_model=CartResponse)
+@router.post(
+    "",
+    response_model=CartResponse,
+    description="Create or return the customer's active cart.",
+    responses={404: {"description": "An item already in the cart is missing from the menu"}},
+)
 def get_or_create_cart(customer_id: CustomerId, service: Service) -> CartResponse:
     return service.get_or_create_cart(customer_id)
 
 
-@router.get("", response_model=CartResponse)
+@router.get(
+    "",
+    response_model=CartResponse,
+    description="Return the active cart, creating an empty one if needed.",
+    responses={404: {"description": "An item already in the cart is missing from the menu"}},
+)
 def get_cart(customer_id: CustomerId, service: Service) -> CartResponse:
     return service.get_cart(customer_id)
 
 
-@router.post("/items", response_model=CartResponse)
+@router.post(
+    "/items",
+    response_model=CartResponse,
+    description="Add an item or increase its quantity if it is already in the cart.",
+    responses={
+        404: {"description": "Restaurant or menu item not found"},
+        409: {"description": "Inactive restaurant, unavailable item, or restaurant mismatch"},
+    },
+)
 def add_item(
     data: AddCartItemRequest,
     restaurant_id: Annotated[str, Query(min_length=8, max_length=8)],
@@ -70,18 +99,28 @@ def add_item(
     return service.add_item(customer_id, restaurant_id, data.menu_item_id, data.quantity)
 
 
-@router.patch("/items/{item_id}", response_model=CartResponse)
+@router.patch(
+    "/items/{item_id}",
+    response_model=CartResponse,
+    description="Set the quantity of an item already in the active cart.",
+    responses={404: {"description": "Item not found in the cart or menu"}},
+)
 def update_item(
     item_id: ItemId, data: UpdateCartItemRequest, customer_id: CustomerId, service: Service
 ) -> CartResponse:
     return service.update_item_quantity(customer_id, item_id, data.quantity)
 
 
-@router.delete("/items/{item_id}", response_model=CartResponse)
+@router.delete(
+    "/items/{item_id}",
+    response_model=CartResponse,
+    description="Remove an item from the active cart.",
+    responses={404: {"description": "Item not found in the cart or menu"}},
+)
 def remove_item(item_id: ItemId, customer_id: CustomerId, service: Service) -> CartResponse:
     return service.remove_item(customer_id, item_id)
 
 
-@router.delete("", response_model=CartResponse)
+@router.delete("", response_model=CartResponse, description="Empty the active cart and reset its restaurant.")
 def clear_cart(customer_id: CustomerId, service: Service) -> CartResponse:
     return service.clear_cart(customer_id)

@@ -17,6 +17,7 @@ is valid.
 | | `Menu`, `MenuListItem` | A restaurant's menu as stored in `menus.json` and returned by `GET .../menu` |
 | | `CreateMenuItem`, `UpdateMenuItem` | Request bodies for `POST` / `PATCH .../menu` |
 | | `MenuItem` | A saved menu item (adds `id` and `restaurant_id`); response for `POST` / `PATCH` |
+| `cart_model.py` | `Cart`, `CartItem`, `CartStatus`, `AddCartItemRequest`, `UpdateCartItemRequest`, `CartResponse` | Persisted cart records, item mutation requests, and responses with computed totals |
 | `accounts/account_model.py` | `EightCharId`, `NonEmptyText`, `Email` (`EmailStr` from `email-validator`, trimmed and lowercased; reserved domains like `.test` are rejected; for registration and changes), `PhoneNumber` (`PhoneNumberValidator` from `pydantic-extra-types`, backed by libphonenumber: Canadian numbers only, any common format in, stored as E.164, e.g. `(250) 222-1234` → `+12502221234`; extensions are dropped), `Role` | Shared type aliases, also imported by `accounts/auth_model.py` |
 | | `AccountCreationRequest` | Request body for registering. Password is `SecretStr` (8–128 characters) so it never prints |
 | | `PartialUpdateRequest` | Base for PATCH bodies: at least one field, no `null`s |
