@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi import Path as PathParameter
 from fastapi.responses import JSONResponse
 
-from backend.app.cart_auth import get_authenticated_customer_id
 from backend.app.menu_dependencies import menu_service
 from backend.app.models.cart_model import AddCartItemRequest, CartResponse, UpdateCartItemRequest
 from backend.app.repositories.cart_repository import CartRepository
+from backend.app.routes.cart_auth import get_authenticated_customer_id
 from backend.app.services.cart_service import (
     CartItemNotFoundError,
     CartItemUnavailableError,
