@@ -71,6 +71,7 @@ docs/
 ├── README.md
 ├── agent_usage.md
 ├── architecture.md
+├── architecture_improvements.md
 ├── scrum.md
 ├── team-agreement.md
 └── PROVENANCE.md

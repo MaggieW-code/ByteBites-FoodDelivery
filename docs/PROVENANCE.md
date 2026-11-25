@@ -504,3 +504,28 @@ Labels: `AI-GENERATED`, `AI-ASSISTED`, `AI-REVISED`, `NO-AI`
 - Validation: Ran the full pytest suite (380 passed). Confirmed the new test fails without the
   handler. No new ruff warnings in the changed files.
 - PR: 155
+
+### Entry 31
+
+- Student(s):
+- Artifact: 
+  backend/app/repositories/accounts/session_repository.py (moved),
+  backend/app/services/accounts/account_factory.py (new),
+  backend/app/services/accounts/account_service.py (new),
+  backend/app/services/accounts/auth_service.py (moved),
+  backend/app/services/accounts/password_hashing.py (moved),
+  backend/app/routes/accounts/customer_routes.py (new), 
+  backend/app/routes/accounts/auth_routes.py (moved),
+  backend/app/dependencies/auth.py, 
+  main.py,
+  backend/tests/auth/*, 
+  AGENTS.md,
+  */README.md
+- Label: AI-ASSISTED | AI-REVISED
+- AI tool: Claude (Claude Code)
+- Purpose: I prompted Claude to assist with developing. All pivitol decisions and architecture changes were mine. I used it to help 
+  implement the backend logic for accounts at an accelerated rate. Furthermore, I had Claude handle testing for me. 
+- Influence: Tests, and basic logic imlementation, however refrained from leting Claude dictate architecture, and actually caught some bugs or 'mistakes' 
+  it would try implementing here or there.
+- Validation: Manually ran tests in `uvicorn main:app` and pytest.
+- PR: TBA
