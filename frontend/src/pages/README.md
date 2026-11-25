@@ -10,6 +10,7 @@ Top-level views: one per route. A page reads the URL, gets its data through hook
 | File | Export | Route | Shows |
 |---|---|---|---|
 | `LandingView.tsx` | `Landing` | `/` | Links to discover and manage restaurants |
+| `AccountView.tsx` | `Account` | `/account` (the only public page) | Sign in or register (toggle); on success goes back to the page `RequireSignIn` sent you from, or `/restaurants`. Field errors from a 422 show under their inputs |
 | `DiscoverView.tsx` | `Discover` | `/restaurants` | Cuisine filter (server-side), debounced name search (client-side), restaurant list |
 | `RestaurantDetailsView.tsx` | `RestaurantDetails` | `/restaurants/:restaurantId` (via a wrapper in `App.tsx` that reads the param) | Restaurant fields, then its menu |
 | `RestaurantMenuView.tsx` | `RestaurantMenu` | none: rendered inside the details page | Menu items, prices, availability, retry on failure |

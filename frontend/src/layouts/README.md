@@ -9,7 +9,7 @@ supply the content; layouts never fetch data or hold page logic.
 
 | Path | Renders | Used by |
 |---|---|---|
-| `generic_layout/GenericLayout.tsx` | Header with the ByteBites home link and a nav (Home), then `children` | `App.tsx`, wrapping every route |
+| `generic_layout/GenericLayout.tsx` | Header with the ByteBites home link and a nav (Home, and Sign out while a token is saved), then `children` | `App.tsx`, wrapping every route |
 
 ## How it connects
 

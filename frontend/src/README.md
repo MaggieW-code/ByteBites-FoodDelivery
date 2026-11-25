@@ -10,7 +10,7 @@ layer.
 | Path | Role |
 |---|---|
 | `index.tsx` | Entry point. Mounts `<App />` on `#root` and fails fast if it's missing |
-| `App.tsx` | `BrowserRouter`, the `GenericLayout` wrapper, and every route (`/`, `/restaurants`, `/restaurants/:restaurantId`, `/manage/restaurants`, 404) |
+| `App.tsx` | `BrowserRouter`, the `GenericLayout` wrapper, and every route: public `/account`, then inside the `RequireSignIn` guard `/`, `/restaurants`, `/restaurants/:restaurantId`, `/manage/restaurants`, 404) |
 | `api/` | The only code that calls the backend |
 | `types/` | TypeScript types mirroring backend models |
 | `hooks/` | Reusable React stateful logic |
