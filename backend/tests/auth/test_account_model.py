@@ -13,6 +13,8 @@ from backend.app.models.accounts.account_model import (
     StoredAdminAccount,
     StoredCustomerAccount,
     StoredRestaurantAccount,
+    UpdateCustomerRequest,
+    UpdateDeliveryAddressRequest,
 )
 
 stored_account_adapter = TypeAdapter(StoredAccount)
@@ -120,7 +122,7 @@ def test_list_fields_default_empty_and_are_not_shared(customer_record: dict[str,
     second_customer = CustomerAccount(**public_fields | {"id": "cust_002"})
     owner = RestaurantAccount(**public_fields | {"id": "ownr_001"})
 
-    first_customer.delivery_addresses.append(DeliveryAddress(label="Home", address="123 Main St"))
+    first_customer.delivery_addresses.append(DeliveryAddress(id="addr_001", label="Home", address="123 Main St"))
 
     assert second_customer.delivery_addresses == []
     assert owner.owned_restaurant_ids == []
@@ -145,3 +147,56 @@ def test_email_is_trimmed_and_lowercased(customer_record: dict[str, Any]) -> Non
     account = stored_account_adapter.validate_python(customer_record | {"email": "  Cara@Example.COM "})
 
     assert account.email == "cara@example.com"
+
+
+# --- UpdateCustomerRequest (C4) ---
+
+
+def test_update_request_keeps_only_the_fields_sent() -> None:
+    request = UpdateCustomerRequest(phone="(250) 555-0199")
+
+    assert request.model_dump(exclude_unset=True) == {"phone": "+12505550199"}
+
+
+@pytest.mark.parametrize(
+    "body",
+    [{}, {"role": "admin"}, {"delivery_addresses": []}, {"full_name": None}],
+    ids=["empty", "only-unknown-fields", "only-addresses", "null-name"],
+)
+def test_update_request_needs_a_real_change(body: dict[str, Any]) -> None:
+    with pytest.raises(ValidationError):
+        UpdateCustomerRequest(**body)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"full_name": ""},
+        {"email": "not-an-email"},
+        {"phone": "12501233211"},
+    ],
+    ids=["empty-name", "bad-email", "bad-phone"],
+)
+def test_update_request_uses_the_registration_rules(body: dict[str, Any]) -> None:
+    with pytest.raises(ValidationError):
+        UpdateCustomerRequest(**body)
+
+
+# --- delivery addresses (C4) ---
+
+
+def test_stored_address_needs_an_eight_character_id() -> None:
+    with pytest.raises(ValidationError):
+        DeliveryAddress(label="Home", address="1 Main St")
+    with pytest.raises(ValidationError):
+        DeliveryAddress(id="addr_1", label="Home", address="1 Main St")
+
+
+@pytest.mark.parametrize(
+    "body",
+    [{}, {"label": None}, {"label": ""}, {"address": ""}],
+    ids=["empty", "null-label", "empty-label", "empty-address"],
+)
+def test_address_update_needs_a_real_non_empty_change(body: dict[str, Any]) -> None:
+    with pytest.raises(ValidationError):
+        UpdateDeliveryAddressRequest(**body)

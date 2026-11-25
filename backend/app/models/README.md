@@ -19,6 +19,9 @@ is valid.
 | | `MenuItem` | A saved menu item (adds `id` and `restaurant_id`); response for `POST` / `PATCH` |
 | `accounts/account_model.py` | `EightCharId`, `NonEmptyText`, `Email` (`EmailStr` from `email-validator`, trimmed and lowercased; reserved domains like `.test` are rejected; for registration and changes), `PhoneNumber` (`PhoneNumberValidator` from `pydantic-extra-types`, backed by libphonenumber: Canadian numbers only, any common format in, stored as E.164, e.g. `(250) 222-1234` → `+12502221234`; extensions are dropped), `Role` | Shared type aliases, also imported by `accounts/auth_model.py` |
 | | `AccountCreationRequest` | Request body for registering. Password is `SecretStr` (8–128 characters) so it never prints |
+| | `PartialUpdateRequest` | Base for PATCH bodies: at least one field, no `null`s |
+| | `DeliveryAddressId`, `DeliveryAddressFields` → `DeliveryAddress`, `CreateDeliveryAddressRequest`; `UpdateDeliveryAddressRequest` | A saved address has an 8-character `id`, unique within its customer. Create needs `label` and `address`; update sends either |
+| | `UpdateCustomerRequest` | `PATCH /customers/me` body: `full_name`, `email`, `phone`, all optional. Undeclared fields (`role`, `is_active`, `password`, `delivery_addresses`) are ignored |
 | | `AccountBase` → `CustomerAccount`, `RestaurantAccount`, `AdminAccount`; `Account` | API responses. `Account` picks the class from `role` |
 | | `StoredCredentials` → `Stored<Role>Account`; `StoredAccount` | Stored records: the public account plus `password_hash` |
 | `accounts/auth_model.py` | `AuthenticatedAccount` | The signed-in caller (`id`, `role`, `is_active`), built by authentication and read by protected routes |

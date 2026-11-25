@@ -11,7 +11,7 @@ read and write them, and validate every record against a Pydantic model in `mode
 |---|---|---|
 | `restaurants.json` | List of restaurants: `id`, `name`, `cuisine`, `rating`, `address`, `is_active` | `RestaurantRepository` |
 | `menus.json` | List of menus, one per restaurant: `restaurant_id`, `currency`, `items[]` (`id`, `name`, `description`, `price` as a string, `is_available`) | `MenuRepository` |
-| `accounts.json` | List of accounts: `id`, `full_name`, `email`, `phone`, `role`, `is_active`, `password_hash` (scrypt), plus `delivery_addresses` or `owned_restaurant_ids` by role. Demo seed data. A missing file is a 500, not "no accounts" | `AccountRepository` |
+| `accounts.json` | List of accounts: `id`, `full_name`, `email`, `phone`, `role`, `is_active`, `password_hash` (scrypt), plus `delivery_addresses` (each `{id, label, address}`) or `owned_restaurant_ids` by role. Demo seed data. A missing file is a 500, not "no accounts" | `AccountRepository` |
 | `sessions.json` | List of sessions: `token_hash` (SHA-256, never the token), `account_id`, `created_at`, `expires_at`. Runtime data: created on first sign-in, gitignored | `SessionRepository` |
 
 ## How it connects
