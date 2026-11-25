@@ -1,20 +1,29 @@
 from typing import Annotated, Literal, TypeAlias
 
-from pydantic import BaseModel, Field, SecretStr, StringConstraints
+from pydantic import BaseModel, BeforeValidator, EmailStr, Field, SecretStr
+from pydantic_extra_types.phone_numbers import PhoneNumberValidator
+
+
+def normalize_email(value: object) -> object:
+    """Trim and lowercase the whole address, so lookups and the duplicate check ignore case."""
+    return value.strip().lower() if isinstance(value, str) else value
+
 
 EightCharId: TypeAlias = Annotated[str, Field(strict=True, min_length=8, max_length=8)]
 Role: TypeAlias = Literal["customer", "restaurant_owner", "admin"]
 NonEmptyText: TypeAlias = Annotated[str, Field(strict=True, min_length=1)]
-Email: TypeAlias = Annotated[
-    str, StringConstraints(strict=True, strip_whitespace=True, to_lower=True, min_length=3, max_length=254)
+Email: TypeAlias = Annotated[EmailStr, BeforeValidator(normalize_email)]
+# Parsed with libphonenumber and stored as E.164: "(250) 222-1234" becomes "+12502221234".
+PhoneNumber: TypeAlias = Annotated[
+    str, PhoneNumberValidator(supported_regions=["CA"], default_region="CA", number_format="E164")
 ]
 
 
 class AccountCreationRequest(BaseModel):
     full_name: NonEmptyText
     email: Email
-    phone: NonEmptyText
-    password: SecretStr
+    phone: PhoneNumber
+    password: Annotated[SecretStr, Field(min_length=8, max_length=128)]
 
 
 class DeliveryAddress(BaseModel):
@@ -28,7 +37,7 @@ class AccountBase(BaseModel):
     id: EightCharId
     full_name: NonEmptyText
     email: Email
-    phone: NonEmptyText
+    phone: PhoneNumber
     is_active: bool = Field(strict=True)
 
 

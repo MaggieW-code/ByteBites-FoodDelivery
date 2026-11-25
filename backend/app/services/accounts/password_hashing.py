@@ -1,4 +1,4 @@
-"""Password hashing with the standard library's scrypt. Swap this one file to move to Argon2."""
+"""Password hashing scrypt."""
 
 import base64
 import binascii

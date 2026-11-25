@@ -148,6 +148,18 @@ Parcel serves the app locally and prints the URL. See
   item does not exist for that restaurant and `422` if `restaurant_id` or
   `menu_item_id` is not 8 characters; nothing is saved in either case.
 
+### Customers
+
+- `POST /customers` — registers a customer. Body: `full_name`, `email`,
+  `phone` (all required; `email` must be a valid address; `phone` must be a real Canadian number in
+  any common format, e.g. `(250) 222-1234`, and is returned as `+12502221234`) and
+  `password` (8–128 characters).
+  Returns `201` with the new customer (`id`, `full_name`, `email`, `phone`,
+  `is_active`, `role`, `delivery_addresses`), never the password. A `role`
+  in the body is ignored: this endpoint only creates customers. Returns
+  `409` if the email is already registered (emails are trimmed and
+  lowercased first). Sign in afterwards with `POST /auth/sign-in`.
+
 Request bodies that fail validation return `422`.
 
 Prices are exact decimals: they are stored in `menus.json` and returned by the

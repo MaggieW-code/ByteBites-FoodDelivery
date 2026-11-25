@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from backend.app.models.account_model import (
+from backend.app.models.accounts.account_model import (
     Account,
     AccountCreationRequest,
     CustomerAccount,
@@ -25,7 +25,7 @@ def customer_record() -> dict[str, Any]:
         id="cust_001",
         full_name="Cara Customer",
         email="cara@example.com",
-        phone="250-555-0101",
+        phone="+12505550101",
         is_active=True,
         role="customer",
         password_hash="scrypt$salt$hash",
@@ -66,6 +66,48 @@ def test_required_text_fields_reject_empty(customer_record: dict[str, Any], fiel
         stored_account_adapter.validate_python(customer_record | {field: ""})
 
 
+@pytest.mark.parametrize(
+    "phone",
+    ["250-222-1234", "(250) 222-1234", " 250.222.1234 ", "2502221234", "12502221234", "+1 250 222 1234"],
+    ids=["dashes", "brackets", "dots-and-spaces", "ten-digits", "with-country-code", "international"],
+)
+def test_phone_is_stored_as_e164(customer_record: dict[str, Any], phone: str) -> None:
+    account = stored_account_adapter.validate_python(customer_record | {"phone": phone})
+
+    assert account.phone == "+12502221234"
+
+
+@pytest.mark.parametrize(
+    "phone",
+    ["02502221234", "250-222-12345", "123", "abc", "+12125551234", "+442071838750", 2502221234],
+    ids=["not-a-real-number", "too-many-digits", "too-short", "letters", "us-number", "uk-number", "integer"],
+)
+def test_phone_rejects_invalid_and_non_canadian_numbers(customer_record: dict[str, Any], phone: Any) -> None:
+    with pytest.raises(ValidationError):
+        stored_account_adapter.validate_python(customer_record | {"phone": phone})
+
+    with pytest.raises(ValidationError):
+        AccountCreationRequest(full_name="Cara Customer", email="cara@example.com", phone=phone, password="hunter2!")
+
+
+@pytest.mark.parametrize(
+    "email",
+    [
+        "cara",
+        "cara@",
+        "@example.com",
+        "cara@example",
+        "cara example@example.com",
+        "cara@bytebites.test",
+        "x" * 250 + "@example.com",
+    ],
+    ids=["no-at", "no-domain", "no-local-part", "no-dot", "space", "reserved-domain", "too-long"],
+)
+def test_email_must_be_a_valid_address(customer_record: dict[str, Any], email: str) -> None:
+    with pytest.raises(ValidationError):
+        stored_account_adapter.validate_python(customer_record | {"email": email})
+
+
 @pytest.mark.parametrize("account_id", ["cust_01", "cust_0001", ""])
 def test_id_must_be_eight_characters(customer_record: dict[str, Any], account_id: str) -> None:
     with pytest.raises(ValidationError):
@@ -86,11 +128,17 @@ def test_list_fields_default_empty_and_are_not_shared(customer_record: dict[str,
 
 def test_account_creation_request_hides_password() -> None:
     request = AccountCreationRequest(
-        full_name="Cara Customer", email="cara@example.com", phone="250-555-0101", password="hunter2"
+        full_name="Cara Customer", email="cara@example.com", phone="+12505550101", password="hunter2!"
     )
 
-    assert "hunter2" not in repr(request)
-    assert request.password.get_secret_value() == "hunter2"
+    assert "hunter2!" not in repr(request)
+    assert request.password.get_secret_value() == "hunter2!"
+
+
+@pytest.mark.parametrize("password", ["1234567", "x" * 129], ids=["too-short", "too-long"])
+def test_account_creation_request_limits_password_length(password: str) -> None:
+    with pytest.raises(ValidationError):
+        AccountCreationRequest(full_name="Cara Customer", email="cara@example.com", phone="+12505550101", password=password)
 
 
 def test_email_is_trimmed_and_lowercased(customer_record: dict[str, Any]) -> None:

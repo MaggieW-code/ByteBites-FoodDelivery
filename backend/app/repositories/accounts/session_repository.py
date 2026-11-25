@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from backend.app.models.auth_model import Session
+from backend.app.models.accounts.auth_model import Session
 from backend.app.repositories.json_list_store import DataFileMalformedError, JsonListStore
 
 sessions_adapter = TypeAdapter(list[Session])

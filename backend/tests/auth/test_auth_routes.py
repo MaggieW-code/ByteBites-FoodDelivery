@@ -5,7 +5,7 @@ from collections.abc import Callable
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app.models.auth_model import TokenResponse
+from backend.app.models.accounts.auth_model import TokenResponse
 from backend.tests.auth.auth_helpers import TEST_PASSWORD, TOKEN_LIFETIME, FakeClock
 
 AuthHeaders = Callable[[str], dict[str, str]]
@@ -24,8 +24,13 @@ def test_sign_in_returns_a_token_that_works_on_me(client: TestClient, clock: Fak
 
 @pytest.mark.parametrize(
     "email, password",
-    [("cara@example.com", "wrong-password"), ("nobody@example.com", TEST_PASSWORD)],
-    ids=["wrong-password", "unknown-email"],
+    [
+        ("cara@example.com", "wrong-password"),
+        ("nobody@example.com", TEST_PASSWORD),
+        ("cara@bytebites.test", TEST_PASSWORD),
+        ("not-an-email", TEST_PASSWORD),
+    ],
+    ids=["wrong-password", "unknown-email", "reserved-domain", "not-an-email"],
 )
 def test_bad_credentials_give_the_same_401(client: TestClient, email: str, password: str) -> None:
     response = client.post("/auth/sign-in", json={"email": email, "password": password})
@@ -43,8 +48,8 @@ def test_deactivated_account_cannot_sign_in(client: TestClient) -> None:
 
 @pytest.mark.parametrize(
     "body",
-    [{}, {"email": "cara@example.com"}, {"password": TEST_PASSWORD}],
-    ids=["empty", "no-password", "no-email"],
+    [{}, {"email": "cara@example.com"}, {"password": TEST_PASSWORD}, {"email": "", "password": TEST_PASSWORD}],
+    ids=["empty", "no-password", "no-email", "empty-email"],
 )
 def test_sign_in_rejects_incomplete_body(client: TestClient, body: dict[str, str]) -> None:
     assert client.post("/auth/sign-in", json=body).status_code == 422

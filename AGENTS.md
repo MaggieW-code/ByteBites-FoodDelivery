@@ -33,11 +33,14 @@ Layers (requests flow left to right, dependencies point the same way):
 Backend (`backend/app/`):
 - `routes/`: HTTP only. Parse the request, call one service, return the response and status
   code. Translate domain errors into HTTP errors here. No business logic, no file access.
-- `services/`: business rules, validation, calculations, state transitions. Raise domain
-  errors (e.g. `MenuItemNotFoundError`), never `HTTPException`. Never touch files directly.
+- `services/`: business rules that need stored data or span entities (uniqueness, ownership,
+  state transitions), calculations, workflow. Raise domain errors (e.g.
+  `MenuItemNotFoundError`), never `HTTPException`. Never touch files directly.
 - `repositories/`: the only layer that reads or writes `data/`. Hides the file format from
   services.
-- `models/`: Pydantic request, response, and domain models shared across layers.
+- `models/`: Pydantic request, response, and domain models shared across layers. Rules that
+  need only the value itself (format, length, allowed characters) live here as `Annotated`
+  types, so FastAPI rejects bad input with 422 before a route runs.
 - `data/`: JSON files. Paths are configurable (`config.py`, e.g. `RESTAURANT_TRIAL_PATH`)
   so tests use their own temporary files.
 - `main.py` (repo root): app setup, middleware, and router registration only.
